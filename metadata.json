@@ -1,0 +1,8 @@
+{
+  "name": "ConvoMag AI",
+  "description": "Multi-Tenant SaaS Platform for AI-enriched digital magazines with immersive voice barging and conversational capabilities.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

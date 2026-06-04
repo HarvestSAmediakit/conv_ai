@@ -1,0 +1,80 @@
+.container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  font-family: system-ui, -apple-system, sans-serif;
+  border: 1px solid #eaeaea;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.icon {
+  color: #667eea;
+  font-size: 20px;
+}
+.header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #1a202c;
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.inputGroup label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #a0aec0;
+  font-weight: 600;
+}
+.inputGroup input, .inputGroup select {
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #4a5568;
+}
+.codeOutput {
+  position: relative;
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 16px;
+}
+.codeOutput pre {
+  margin: 0;
+  color: #e2e8f0;
+  font-family: monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.copyBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.copyBtn:hover {
+  background: rgba(255,255,255,0.2);
+}

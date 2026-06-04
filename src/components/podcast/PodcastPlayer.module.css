@@ -1,0 +1,40 @@
+.player { display: flex; flex-direction: column; height: 100%; border: 1px solid #ddd; background: #fff; border-radius: 12px; overflow: hidden; font-family: sans-serif; position: relative;}
+.header { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px; background: #f8f9fa; border-bottom: 1px solid #eee; }
+.articleInfo h2 { margin: 0; font-size: 18px; color: #222; }
+.articleInfo p { margin: 4px 0 0; font-size: 13px; color: #666; }
+.closeBtn { background: none; border: none; font-size: 18px; color: #888; cursor: pointer; }
+.visualizer { height: 100px; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.waveform { display: flex; align-items: center; gap: 3px; height: 50px; width: 100%; justify-content: center; }
+.bar { width: 4px; background: #e0e0e0; border-radius: 2px; }
+.bar.active { background: #667eea; }
+.progressArea { display: flex; align-items: center; gap: 15px; padding: 0 30px; margin-bottom: 20px; }
+.time { font-size: 12px; color: #666; font-variant-numeric: tabular-nums; }
+.progressBar { flex: 1; height: 6px; background: #eee; border-radius: 3px; position: relative; cursor: pointer; }
+.progress { position: absolute; left: 0; top: 0; height: 100%; background: #667eea; border-radius: 3px; }
+.progressHandle { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: white; border: 2px solid #667eea; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.controls { display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 20px; }
+.skipBtn { background: none; border: none; font-size: 20px; color: #555; cursor: pointer; }
+.playBtn { width: 60px; height: 60px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3); transition: transform 0.1s; }
+.playBtn:active { transform: scale(0.95); }
+.extraControls { display: flex; justify-content: space-between; padding: 20px 30px; border-top: 1px solid #eee; }
+.voiceBtn, .transcriptBtn { display: flex; align-items: center; gap: 8px; background: none; border: none; font-size: 14px; font-weight: 600; color: #555; cursor: pointer; padding: 8px 12px; border-radius: 6px; transition: background 0.2s; }
+.voiceBtn:hover, .transcriptBtn:hover { background: #f0f0f0; }
+.voiceBtn.listening { color: #e53e3e; background: #fff5f5; }
+.interruptPanel { position: absolute; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #eee; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 10; padding: 20px; max-height: 80%; overflow-y: auto; }
+.interruptHeader { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #e53e3e; margin-bottom: 15px; }
+.interruptContent { display: flex; flex-direction: column; gap: 15px; }
+.question { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+.question strong, .answer strong { display: block; font-size: 12px; color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;}
+.question p, .answer p { margin: 0; font-size: 15px; color: #222; line-height: 1.5; }
+.answer { padding: 15px; background: #f0f4ff; border-radius: 8px; border-left: 4px solid #667eea; }
+.citations { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+.citation { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #059669; }
+.resumeBtn { display: flex; align-items: center; justify-content: center; gap: 10px; background: #667eea; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+.transcriptPanel { border-top: 1px solid #eee; background: #fbfbfb; overflow: hidden; display: flex; flex-direction: column; flex: 1;}
+.transcriptPanel h3 { padding: 15px 20px; margin: 0; font-size: 15px; border-bottom: 1px solid #eee; background: white; }
+.transcriptContent { overflow-y: auto; padding: 15px; }
+.transcriptSection { padding: 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; margin-bottom: 5px; }
+.transcriptSection:hover { background: #f0f0f0; }
+.transcriptSection.current { background: #eef2ff; border-left: 3px solid #667eea; }
+.timestamp { font-size: 11px; font-weight: 600; color: #667eea; }
+.transcriptSection p { margin: 5px 0 0; font-size: 14px; color: #444; line-height: 1.5; }
