@@ -58,6 +58,7 @@ export default function AIChatPanel({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'all' | 'articles' | 'advertisers'>('all');
@@ -69,17 +70,49 @@ export default function AIChatPanel({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Welcome message
+  // Load chat history from local storage or set welcome message
   useEffect(() => {
-    setMessages([
-      {
-        id: 'welcome',
-        role: 'assistant',
-        content: introduction,
-        timestamp: new Date(),
-      },
-    ]);
-  }, [introduction]);
+    if (hasLoadedHistory) return;
+
+    try {
+      const stored = localStorage.getItem(`convomag_chat_${issueId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const hydratedMessages = parsed.map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+        setMessages(hydratedMessages);
+      } else {
+        setMessages([
+          {
+            id: 'welcome',
+            role: 'assistant',
+            content: introduction,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    } catch (e) {
+      console.error('Failed to load chat history:', e);
+      setMessages([
+        {
+          id: 'welcome',
+          role: 'assistant',
+          content: introduction,
+          timestamp: new Date(),
+        },
+      ]);
+    }
+    setHasLoadedHistory(true);
+  }, [issueId, introduction, hasLoadedHistory]);
+
+  // Save chat history to local storage whenever messages update
+  useEffect(() => {
+    if (hasLoadedHistory && messages.length > 0) {
+      localStorage.setItem(`convomag_chat_${issueId}`, JSON.stringify(messages));
+    }
+  }, [messages, issueId, hasLoadedHistory]);
 
   // Suggested questions
   const suggestedQuestions: SuggestedQuestion[] = [

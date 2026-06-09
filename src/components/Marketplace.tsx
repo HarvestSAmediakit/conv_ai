@@ -24,11 +24,13 @@ import {
   Headphones,
   Send,
   Volume2,
-  Trash2
+  Trash2,
+  Settings
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PricingModal from './PricingModal';
+import CacheManagerModal from './CacheManagerModal';
 
 interface Publication {
   id: string;
@@ -71,6 +73,7 @@ export default function Marketplace() {
       return ['mag_harvest_82', 'mag_1'];
     }
   });
+  const [isCacheManagerOpen, setIsCacheManagerOpen] = useState(false);
 
   const toggleOfflineDownload = (id: string) => {
     setOfflineMags(prev => {
@@ -302,26 +305,26 @@ export default function Marketplace() {
   const newspapersList = filteredPublications.filter(p => p.type === 'newspaper');
 
   const categories = [
-    { name: 'Business', icon: '📈', color: 'bg-emerald-50 text-emerald-600' },
+    { name: 'Business', icon: '📈', color: 'bg-emerald-900/30 text-emerald-600' },
     { name: 'Technology', icon: '💻', color: 'bg-blue-50 text-blue-600' },
-    { name: 'AI', icon: '🤖', color: 'bg-indigo-50 text-indigo-600' },
+    { name: 'AI', icon: '🤖', color: 'bg-indigo-900/30 text-indigo-400' },
     { name: 'Sports', icon: '⚽', color: 'bg-green-50 text-green-600' },
     { name: 'Aviation', icon: '✈️', color: 'bg-cyan-50 text-cyan-500' },
-    { name: 'Finance', icon: '💰', color: 'bg-amber-50 text-amber-600' }
+    { name: 'Finance', icon: '💰', color: 'bg-amber-900/30 text-amber-600' }
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 pb-36 font-sans relative selection:bg-emerald-500/10 blueprint-grid">
+    <div className="min-h-screen bg-[#050505] text-gray-100 pb-36 font-sans relative selection:bg-emerald-500/10 blueprint-grid">
       
       {/* Brand Header styled precisely like requested markup */}
-      <header className="sticky top-0 z-[120] bg-white border-b border-zinc-100 shadow-xs px-4 py-3.5 sm:py-4">
+      <header className="sticky top-0 z-[120] bg-[#0A0A0A] border-b border-white/5 shadow-xs px-4 py-3.5 sm:py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           
           {/* Left brand and layout hamburger */}
           <div className="flex items-center space-x-3.5">
             <button 
               onClick={() => setShowSideDrawer(true)}
-              className="p-1.5 text-zinc-600 hover:text-zinc-900 focus:outline-none transition-colors rounded-full hover:bg-zinc-100"
+              className="p-1.5 text-zinc-600 hover:text-gray-100 focus:outline-none transition-colors rounded-full hover:bg-[#1A1A1A]/10"
               id="main-hamburger-menu"
             >
               <Menu size={22} />
@@ -351,7 +354,7 @@ export default function Marketplace() {
                 const searchEl = document.getElementById('catalog-search-input');
                 if (searchEl) searchEl.focus();
               }}
-              className="w-10 h-10 rounded-full bg-[#f1f3f5] hover:bg-zinc-200 flex items-center justify-center text-zinc-700 transition"
+              className="w-10 h-10 rounded-full bg-[#f1f3f5] hover:bg-zinc-200 flex items-center justify-center text-zinc-300 transition"
               title="Search stand"
             >
               <Search size={17} />
@@ -359,7 +362,7 @@ export default function Marketplace() {
 
             <button 
               onClick={() => setShowPricing(true)}
-              className="w-10 h-10 rounded-full bg-[#f1f3f5] hover:bg-zinc-200 flex items-center justify-center text-zinc-700 transition"
+              className="w-10 h-10 rounded-full bg-[#f1f3f5] hover:bg-zinc-200 flex items-center justify-center text-zinc-300 transition"
               title="User Account"
             >
               <User size={17} />
@@ -382,11 +385,11 @@ export default function Marketplace() {
             {/* Hero Card Section */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 animate-in fade-in slide-in-from-bottom-3 duration-500">
               <div className="bg-gradient-to-br from-[#00c896] via-[#05bfa0] to-[#04aa8a] text-white p-7 sm:p-10 rounded-3xl shadow-md relative overflow-hidden">
-                <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-white/10 blur-xl pointer-events-none" />
-                <div className="absolute left-1/3 top-2 w-28 h-28 rounded-full bg-white/5 blur-lg pointer-events-none" />
+                <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-[#0A0A0A]/10 blur-xl pointer-events-none" />
+                <div className="absolute left-1/3 top-2 w-28 h-28 rounded-full bg-[#0A0A0A]/5 blur-lg pointer-events-none" />
                 
                 <div className="relative z-10 max-w-2xl">
-                  <span className="bg-white/20 border border-white/25 text-white text-[10px] uppercase tracking-widest font-extrabold px-3 py-1 rounded-full inline-block mb-3">
+                  <span className="bg-[#0A0A0A]/20 border border-white/25 text-white text-[10px] uppercase tracking-widest font-extrabold px-3 py-1 rounded-full inline-block mb-3">
                     ConvoMag Operating System
                   </span>
                   <h1 className="text-2xl sm:text-4xl font-black tracking-tight mb-3 font-sans md:leading-tight">
@@ -407,7 +410,7 @@ export default function Marketplace() {
                   className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                     activeFilterType === 'all' 
                       ? 'bg-zinc-900 text-white' 
-                      : 'bg-white text-zinc-600 hover:bg-zinc-50 border border-zinc-200/80 shadow-xs'
+                      : 'bg-[#0A0A0A] text-zinc-600 hover:bg-[#1A1A1A]/5 border border-white/10/80 shadow-xs'
                   }`}
                 >
                   All Stand
@@ -417,7 +420,7 @@ export default function Marketplace() {
                   className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                     activeFilterType === 'magazine' 
                       ? 'bg-[#00c896] text-white' 
-                      : 'bg-white text-zinc-600 hover:bg-zinc-50 border border-zinc-200/80 shadow-xs'
+                      : 'bg-[#0A0A0A] text-zinc-600 hover:bg-[#1A1A1A]/5 border border-white/10/80 shadow-xs'
                   }`}
                 >
                   Magazines
@@ -427,7 +430,7 @@ export default function Marketplace() {
                   className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                     activeFilterType === 'newspaper' 
                       ? 'bg-[#00c896] text-white' 
-                      : 'bg-white text-zinc-600 hover:bg-zinc-50 border border-zinc-200/80 shadow-xs'
+                      : 'bg-[#0A0A0A] text-zinc-600 hover:bg-[#1A1A1A]/5 border border-white/10/80 shadow-xs'
                   }`}
                 >
                   Newspapers
@@ -437,7 +440,7 @@ export default function Marketplace() {
               {/* Sliders Pill to toggle state */}
               <button 
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                className="flex items-center space-x-1.5 px-4 py-2 bg-white text-zinc-700 hover:bg-zinc-50 border border-zinc-200/80 rounded-full text-xs font-bold shadow-xs transition-all"
+                className="flex items-center space-x-1.5 px-4 py-2 bg-[#0A0A0A] text-zinc-300 hover:bg-[#1A1A1A]/5 border border-white/10/80 rounded-full text-xs font-bold shadow-xs transition-all"
               >
                 <SlidersHorizontal size={13} className="text-[#00c896]" />
                 <span>Filter</span>
@@ -451,7 +454,7 @@ export default function Marketplace() {
                 <input
                   id="catalog-search-input"
                   type="text"
-                  className="w-full p-4 pl-12 border-none rounded-2xl text-xs bg-white shadow-xs focus:ring-2 focus:ring-[#00c896]/20 focus:outline-none focus:border-[#00c896] transition-all text-zinc-800 placeholder-zinc-400"
+                  className="w-full p-4 pl-12 border-none rounded-2xl text-xs bg-[#0A0A0A] shadow-xs focus:ring-2 focus:ring-[#00c896]/20 focus:outline-none focus:border-[#00c896] transition-all text-zinc-200 placeholder-zinc-400"
                   placeholder="Search newspapers, magazines or agricultural reports..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -462,7 +465,7 @@ export default function Marketplace() {
                 {search && (
                   <button 
                     onClick={() => setSearch('')}
-                    className="absolute inset-y-0 right-4 flex items-center text-zinc-400 hover:text-zinc-650"
+                    className="absolute inset-y-0 right-4 flex items-center text-zinc-400 hover:text-zinc-300"
                   >
                     <X size={15} />
                   </button>
@@ -478,7 +481,7 @@ export default function Marketplace() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden bg-white border border-zinc-200/60 rounded-2xl p-4 mt-2 shadow-md space-y-2"
+                    className="overflow-hidden bg-[#0A0A0A] border border-white/10/60 rounded-2xl p-4 mt-2 shadow-md space-y-2"
                   >
                     <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#00c896] mb-1">
                       Show Options
@@ -486,20 +489,20 @@ export default function Marketplace() {
                     <div className="flex flex-wrap gap-2">
                       <button 
                         onClick={() => { setSearch('AI'); setShowFilterDropdown(false); }}
-                        className="flex items-center space-x-1 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                        className="flex items-center space-x-1 px-3 py-1.5 bg-indigo-900/30 border border-indigo-500/20 rounded-lg text-xs font-semibold text-indigo-300 hover:bg-indigo-100"
                       >
-                        <Sparkles size={11} className="fill-indigo-600 text-indigo-600" />
+                        <Sparkles size={11} className="fill-indigo-600 text-indigo-400" />
                         <span>Has Smart Companion</span>
                       </button>
                       <button 
                         onClick={() => { setSearch('Economist'); setShowFilterDropdown(false); }}
-                        className="px-3 py-1.5 bg-zinc-50 hover:bg-zinc-100 rounded-lg text-xs font-semibold text-zinc-600"
+                        className="px-3 py-1.5 bg-white/5 hover:bg-[#1A1A1A]/10 rounded-lg text-xs font-semibold text-zinc-600"
                       >
                         The Economist Issues
                       </button>
                       <button 
                         onClick={() => { setSearch('Harvest'); setShowFilterDropdown(false); }}
-                        className="px-3 py-1.5 bg-zinc-50 hover:bg-zinc-100 rounded-lg text-xs font-semibold text-zinc-600"
+                        className="px-3 py-1.5 bg-white/5 hover:bg-[#1A1A1A]/10 rounded-lg text-xs font-semibold text-zinc-600"
                       >
                         Harvest SA Agricultural
                       </button>
@@ -531,7 +534,7 @@ export default function Marketplace() {
                   <div className="h-5 w-1 bg-indigo-500 rounded-full" />
                   <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-zinc-950 font-sans flex items-center gap-2">
                     <span>AI Collections</span>
-                    <span className="bg-indigo-100 text-indigo-700 font-mono font-bold text-[9px] px-1.5 py-0.5 rounded-lg uppercase tracking-wide">Dynamic</span>
+                    <span className="bg-indigo-100 text-indigo-300 font-mono font-bold text-[9px] px-1.5 py-0.5 rounded-lg uppercase tracking-wide">Dynamic</span>
                   </h2>
                 </div>
               </div>
@@ -546,13 +549,13 @@ export default function Marketplace() {
                   <button
                     key={idx}
                     onClick={() => setSearch(col.searchq)}
-                    className="p-4 bg-white rounded-2xl shadow-xs border border-zinc-200/50 hover:border-zinc-300 hover:shadow-md text-left transition relative overflow-hidden group"
+                    className="p-4 bg-[#0A0A0A] rounded-2xl shadow-xs border border-white/10/50 hover:border-zinc-300 hover:shadow-md text-left transition relative overflow-hidden group"
                   >
                     <div className="absolute top-0 right-0 h-1 text-white bg-gradient-to-r w-full transition" style={{ backgroundImage: `linear-gradient(to right, var(--tw-gradient-stops))` }} />
-                    <span className="text-[9px] font-extrabold uppercase bg-zinc-50 border border-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md inline-block mb-2">
+                    <span className="text-[9px] font-extrabold uppercase bg-white/5 border border-white/5 text-zinc-600 px-2 py-0.5 rounded-md inline-block mb-2">
                       {col.badge}
                     </span>
-                    <h4 className="text-xs font-bold text-zinc-900 leading-snug tracking-tight mb-1 group-hover:text-[#00c896] transition">
+                    <h4 className="text-xs font-bold text-gray-100 leading-snug tracking-tight mb-1 group-hover:text-[#00c896] transition">
                       {col.title}
                     </h4>
                     <p className="text-[10px] text-zinc-400 font-medium">
@@ -572,7 +575,7 @@ export default function Marketplace() {
                     <div>
                       <h2 className="text-lg sm:text-xl font-black tracking-tight text-zinc-950 font-sans flex items-center gap-2">
                         Featured AI Publications
-                        <span className="bg-indigo-100 text-indigo-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">Voice Enabled</span>
+                        <span className="bg-indigo-100 text-indigo-300 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">Voice Enabled</span>
                       </h2>
                       <p className="text-[10px] text-zinc-400 font-medium">Publications where you can literally speak directly with the pages</p>
                     </div>
@@ -684,11 +687,11 @@ export default function Marketplace() {
                       whileHover={{ y: -3 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedPub(mag)}
-                      className="min-w-[175px] max-w-[190px] shrink-0 group cursor-pointer bg-white p-3 rounded-2xl border border-zinc-200/55 hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                      className="min-w-[175px] max-w-[190px] shrink-0 group cursor-pointer bg-[#0A0A0A] p-3 rounded-2xl border border-white/10/55 hover:shadow-md transition-all duration-200 flex flex-col justify-between"
                     >
                       <div>
                         {/* Visual Cover Layer with AI Ready badge */}
-                        <div className="aspect-[3/4.2] w-full rounded-xl overflow-hidden bg-zinc-50 border border-zinc-200/40 relative shadow-xs">
+                        <div className="aspect-[3/4.2] w-full rounded-xl overflow-hidden bg-white/5 border border-white/10/40 relative shadow-xs">
                           <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/15 via-transparent to-transparent z-10 pointer-events-none" />
                           <img 
                             src={mag.coverUrl} 
@@ -709,7 +712,7 @@ export default function Marketplace() {
 
                         {/* Structured details */}
                         <div className="mt-2.5 px-0.5">
-                          <h3 className="font-sans font-bold text-xs text-zinc-900 line-clamp-2 leading-snug group-hover:text-[#00c896] transition duration-200 min-h-[32px]">
+                          <h3 className="font-sans font-bold text-xs text-gray-100 line-clamp-2 leading-snug group-hover:text-[#00c896] transition duration-200 min-h-[32px]">
                             {mag.title}
                           </h3>
                           <div className="text-[9px] text-zinc-500 font-medium mt-1.5 flex items-center justify-between">
@@ -720,14 +723,14 @@ export default function Marketplace() {
                       </div>
 
                       {/* Direct Navigation Shortcuts */}
-                      <div className="mt-3.5 pt-2.5 border-t border-zinc-100 space-y-1.5">
+                      <div className="mt-3.5 pt-2.5 border-t border-white/5 space-y-1.5">
                         <div className="grid grid-cols-2 gap-1.5">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/reader?pub=${mag.id}&chat=true`);
                             }}
-                            className="py-1 px-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold active:scale-95 text-[9px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                            className="py-1 px-1.5 bg-indigo-900/30 hover:bg-indigo-100 text-indigo-300 font-bold active:scale-95 text-[9px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
                             title="Conversational AI Chat"
                           >
                             <span>🧠 Ask</span>
@@ -737,7 +740,7 @@ export default function Marketplace() {
                               e.stopPropagation();
                               navigate(`/reader?pub=${mag.id}&tts=true`);
                             }}
-                            className="py-1 px-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold active:scale-95 text-[9px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                            className="py-1 px-1.5 bg-emerald-900/30 hover:bg-emerald-100 text-emerald-700 font-bold active:scale-95 text-[9px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
                             title="Listen to Narrator"
                           >
                             <span>🎧 Listen</span>
@@ -748,7 +751,7 @@ export default function Marketplace() {
                             e.stopPropagation();
                             navigate(`/reader?pub=${mag.id}`);
                           }}
-                          className="w-full py-1 bg-zinc-50 hover:bg-zinc-100 text-zinc-700 font-extrabold active:scale-95 text-[9px] rounded-lg border border-zinc-200/40 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                          className="w-full py-1 bg-white/5 hover:bg-[#1A1A1A]/10 text-zinc-300 font-extrabold active:scale-95 text-[9px] rounded-lg border border-white/10/40 transition-colors flex items-center justify-center gap-1 cursor-pointer"
                         >
                           <span>📖 Read Issue</span>
                         </button>
@@ -787,11 +790,11 @@ export default function Marketplace() {
                       whileHover={{ y: -3 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedPub(paper)}
-                      className="min-w-[175px] max-w-[190px] shrink-0 group cursor-pointer bg-white p-3 rounded-2xl border border-zinc-200/55 hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                      className="min-w-[175px] max-w-[190px] shrink-0 group cursor-pointer bg-[#0A0A0A] p-3 rounded-2xl border border-white/10/55 hover:shadow-md transition-all duration-200 flex flex-col justify-between"
                     >
                       <div>
                         {/* Cover image frame */}
-                        <div className="aspect-[3/4.2] w-full rounded-xl overflow-hidden bg-zinc-50 border border-zinc-200/40 relative shadow-xs">
+                        <div className="aspect-[3/4.2] w-full rounded-xl overflow-hidden bg-white/5 border border-white/10/40 relative shadow-xs">
                           <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/15 via-transparent to-transparent z-10 pointer-events-none" />
                           <img 
                             src={paper.coverUrl} 
@@ -812,7 +815,7 @@ export default function Marketplace() {
 
                         {/* Details specs */}
                         <div className="mt-2.5 px-0.5">
-                          <h3 className="font-sans font-bold text-xs text-zinc-900 line-clamp-2 leading-snug group-hover:text-[#00c896] transition duration-200 min-h-[32px]">
+                          <h3 className="font-sans font-bold text-xs text-gray-100 line-clamp-2 leading-snug group-hover:text-[#00c896] transition duration-200 min-h-[32px]">
                             {paper.title}
                           </h3>
                           <div className="text-[9px] text-zinc-500 font-medium mt-1.5 flex items-center justify-between">
@@ -823,14 +826,14 @@ export default function Marketplace() {
                       </div>
 
                       {/* Direct Navigation Shortcuts */}
-                      <div className="mt-3.5 pt-2.5 border-t border-zinc-100 space-y-1.5">
+                      <div className="mt-3.5 pt-2.5 border-t border-white/5 space-y-1.5">
                         <div className="grid grid-cols-2 gap-1.5">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/reader?pub=${paper.id}&chat=true`);
                             }}
-                            className="py-1 px-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold active:scale-95 text-[9px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                            className="py-1 px-1.5 bg-indigo-900/30 hover:bg-indigo-100 text-indigo-300 font-bold active:scale-95 text-[9px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
                             title="Conversational AI Chat"
                           >
                             <span>🧠 Ask</span>
@@ -840,7 +843,7 @@ export default function Marketplace() {
                               e.stopPropagation();
                               navigate(`/reader?pub=${paper.id}&tts=true`);
                             }}
-                            className="py-1 px-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold active:scale-95 text-[9px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                            className="py-1 px-1.5 bg-emerald-900/30 hover:bg-emerald-100 text-emerald-700 font-bold active:scale-95 text-[9px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
                             title="Listen to Narrator"
                           >
                             <span>🎧 Listen</span>
@@ -851,7 +854,7 @@ export default function Marketplace() {
                             e.stopPropagation();
                             navigate(`/reader?pub=${paper.id}`);
                           }}
-                          className="w-full py-1 bg-zinc-50 hover:bg-zinc-100 text-zinc-700 font-extrabold active:scale-95 text-[9px] rounded-lg border border-zinc-200/40 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                          className="w-full py-1 bg-white/5 hover:bg-[#1A1A1A]/10 text-zinc-300 font-extrabold active:scale-95 text-[9px] rounded-lg border border-white/10/40 transition-colors flex items-center justify-center gap-1 cursor-pointer"
                         >
                           <span>📖 Read Issue</span>
                         </button>
@@ -864,8 +867,8 @@ export default function Marketplace() {
 
             {/* CATEGORIES GRID */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-10">
-              <div className="flex justify-between items-center mb-5 pb-2 border-b border-zinc-200/40">
-                <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-zinc-900 font-sans">
+              <div className="flex justify-between items-center mb-5 pb-2 border-b border-white/10/40">
+                <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-gray-100 font-sans">
                   Categories
                 </h2>
                 <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest font-mono">
@@ -888,7 +891,7 @@ export default function Marketplace() {
                       className={`p-5 rounded-2xl cursor-pointer text-center transition shadow-xs border flex flex-col items-center justify-center ${
                         isActive 
                           ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm' 
-                          : 'bg-white border-zinc-250/50 hover:bg-zinc-50 text-zinc-800'
+                          : 'bg-[#0A0A0A] border-zinc-250/50 hover:bg-[#1A1A1A]/5 text-zinc-200'
                       }`}
                     >
                       <div className="text-3xl mb-2.5">
@@ -906,19 +909,19 @@ export default function Marketplace() {
 
             {/* Pro Companion Highlights Banner */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-16">
-              <div className="p-6 rounded-2xl bg-white border border-zinc-200/50 shadow-xs flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="p-6 rounded-2xl bg-[#0A0A0A] border border-white/10/50 shadow-xs flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="max-w-2xl">
                   <h3 className="text-xs font-extrabold uppercase text-[#00c896] tracking-wider mb-2 flex items-center gap-1.5">
                     <Sparkles size={12} className="fill-[#00c896] text-[#00c896]" />
                     <span>ConvoMag Multi-turn Synthesis</span>
                   </h3>
-                  <p className="text-xs text-zinc-650 leading-relaxed">
+                  <p className="text-xs text-zinc-300 leading-relaxed">
                     Select any issue in the stand with <strong>AI READY</strong> enabled. Click <strong>Ask AI</strong> to trigger live content scanning powered by Gemini. You can fetch specific fact listings without loading large file formats.
                   </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 rounded-md text-[10px] uppercase font-mono">Offline RAG Ready</span>
-                  <span className="px-3 py-1 bg-emerald-50 text-[#00c896] font-bold border border-emerald-100 rounded-md text-[10px] uppercase font-mono">PWA Cached</span>
+                  <span className="px-3 py-1 bg-indigo-900/30 text-indigo-300 font-bold border border-indigo-500/20 rounded-md text-[10px] uppercase font-mono">Offline RAG Ready</span>
+                  <span className="px-3 py-1 bg-emerald-900/30 text-[#00c896] font-bold border border-emerald-100 rounded-md text-[10px] uppercase font-mono">PWA Cached</span>
                 </div>
               </div>
             </section>
@@ -950,30 +953,25 @@ export default function Marketplace() {
             </div>
 
             {/* Offline Shelf Streams */}
-            <div className="mb-6 flex justify-between items-center pb-3 border-b border-zinc-200">
+            <div className="mb-6 flex justify-between items-center pb-3 border-b border-white/10">
               <h3 className="font-extrabold text-sm uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-2">
                 <span>Currently Cached Issues ({offlineMags.length})</span>
               </h3>
               <button 
-                onClick={() => {
-                  if (confirm("Purge application offline database resources?")) {
-                    setOfflineMags([]);
-                    localStorage.removeItem('convomag_offline_downloads');
-                  }
-                }}
-                className="text-[10px] font-bold text-zinc-500 hover:text-rose-600 flex items-center gap-1 cursor-pointer"
+                onClick={() => setIsCacheManagerOpen(true)}
+                className="text-[10px] font-bold text-zinc-500 hover:text-indigo-400 flex items-center gap-1.5 cursor-pointer"
               >
-                <Trash2 size={10} />
-                <span>Clear Cache DB</span>
+                <Settings size={11} className="hover:rotate-45 transition-transform duration-300" />
+                <span>Audit & Manage Cache</span>
               </button>
             </div>
 
             {offlineMags.length === 0 ? (
-              <div className="p-12 text-center bg-white rounded-3xl border border-zinc-200/60 shadow-xs max-w-lg mx-auto my-12">
+              <div className="p-12 text-center bg-[#0A0A0A] rounded-3xl border border-white/10/60 shadow-xs max-w-lg mx-auto my-12">
                 <div className="inline-flex p-4 rounded-full bg-slate-50 text-zinc-400 mb-4 animate-bounce">
                   <BookOpen size={32} />
                 </div>
-                <h3 className="font-sans font-bold text-zinc-900 text-sm mb-1">Your bookshelf is empty</h3>
+                <h3 className="font-sans font-bold text-gray-100 text-sm mb-1">Your bookshelf is empty</h3>
                 <p className="text-zinc-500 text-xs leading-relaxed mb-6">
                   Browse our Premium Catalog, choose any publication from the stand list, and mark them as offline-ready to create your personal digital library.
                 </p>
@@ -992,11 +990,11 @@ export default function Marketplace() {
                       key={pub.id}
                       whileHover={{ y: -4 }}
                       onClick={() => setSelectedPub(pub)}
-                      className="group bg-white p-3.5 rounded-2xl border border-zinc-200/70 hover:shadow-md cursor-pointer transition flex flex-col justify-between"
+                      className="group bg-[#0A0A0A] p-3.5 rounded-2xl border border-white/10/70 hover:shadow-md cursor-pointer transition flex flex-col justify-between"
                     >
                       <div>
                         {/* Cover aspect and badge */}
-                        <div className="aspect-[3/4.2] w-full rounded-xl overflow-hidden bg-zinc-50 border border-zinc-200/20 relative shadow-sm">
+                        <div className="aspect-[3/4.2] w-full rounded-xl overflow-hidden bg-white/5 border border-white/10/20 relative shadow-sm">
                           <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/20 via-transparent to-transparent z-10 pointer-events-none" />
                           <img 
                             src={pub.coverUrl} 
@@ -1011,7 +1009,7 @@ export default function Marketplace() {
 
                         {/* Text and stats */}
                         <div className="mt-3 px-0.5">
-                          <h4 className="font-sans font-bold text-xs text-zinc-900 line-clamp-2 leading-snug group-hover:text-indigo-600 transition">
+                          <h4 className="font-sans font-bold text-xs text-gray-100 line-clamp-2 leading-snug group-hover:text-indigo-400 transition">
                             {pub.title}
                           </h4>
                           <div className="flex items-center justify-between mt-1">
@@ -1019,8 +1017,8 @@ export default function Marketplace() {
                             <span className="text-[9px] text-zinc-400 font-medium flex items-center gap-1"><Clock size={10} /> {pub.pageCount || 84} min</span>
                           </div>
 
-                          <div className="mt-2.5 space-y-1 pt-2 border-t border-zinc-100">
-                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
+                          <div className="mt-2.5 space-y-1 pt-2 border-t border-white/5">
+                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-900/30 px-2 py-0.5 rounded-md inline-block">
                               Offline Available
                             </span>
                           </div>
@@ -1054,7 +1052,7 @@ export default function Marketplace() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0.5 }}
               transition={{ type: "spring", damping: 28, stiffness: 220 }}
-              className="fixed inset-x-0 bottom-0 max-h-[85vh] md:max-h-[90vh] bg-white rounded-t-[32px] box-shadow-2xl z-[350] border-t border-zinc-200 pointer-events-auto flex flex-col overflow-y-auto pb-8 custom-scrollbar"
+              className="fixed inset-x-0 bottom-0 max-h-[85vh] md:max-h-[90vh] bg-[#0A0A0A] rounded-t-[32px] box-shadow-2xl z-[350] border-t border-white/10 pointer-events-auto flex flex-col overflow-y-auto pb-8 custom-scrollbar"
             >
               {/* Internal layout block */}
               <div className="max-w-4xl mx-auto w-full p-6 sm:p-10 relative">
@@ -1066,7 +1064,7 @@ export default function Marketplace() {
 
                 <button
                   onClick={() => setSelectedPub(null)}
-                  className="absolute top-4 sm:top-8 right-4 sm:right-8 p-2.5 bg-zinc-100 text-zinc-500 hover:text-zinc-800 rounded-full transition-colors cursor-pointer"
+                  className="absolute top-4 sm:top-8 right-4 sm:right-8 p-2.5 bg-white/10 text-zinc-500 hover:text-zinc-200 rounded-full transition-colors cursor-pointer"
                   title="Close presentation"
                 >
                   <X size={18} />
@@ -1077,7 +1075,7 @@ export default function Marketplace() {
                   
                   {/* Left Column: Premium Cover & spec cards */}
                   <div className="md:col-span-5 flex flex-col items-center">
-                    <div className="aspect-[3/4.2] w-full max-w-[260px] rounded-2xl overflow-hidden shadow-2xl bg-zinc-50 border border-zinc-200 relative">
+                    <div className="aspect-[3/4.2] w-full max-w-[260px] rounded-2xl overflow-hidden shadow-2xl bg-white/5 border border-white/10 relative">
                       <div className="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-black/15 via-transparent to-transparent z-10 pointer-events-none" />
                       <img 
                         src={selectedPub.coverUrl} 
@@ -1094,15 +1092,15 @@ export default function Marketplace() {
 
                     {/* Quick spec indicators */}
                     <div className="grid grid-cols-3 gap-2 w-full max-w-[260px] mt-4">
-                      <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-200/50 text-center">
+                      <div className="p-2.5 bg-white/5 rounded-xl border border-white/10/50 text-center">
                         <span className="text-[10px] text-zinc-400 font-bold uppercase block">Pages</span>
                         <strong className="text-xs text-zinc-850 font-sans">{selectedPub.pageCount || 84}</strong>
                       </div>
-                      <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-200/50 text-center">
+                      <div className="p-2.5 bg-white/5 rounded-xl border border-white/10/50 text-center">
                         <span className="text-[10px] text-zinc-400 font-bold uppercase block">AI DB</span>
-                        <strong className="text-xs text-indigo-650 text-indigo-600 font-sans">Active 🤖</strong>
+                        <strong className="text-xs text-indigo-650 text-indigo-400 font-sans">Active 🤖</strong>
                       </div>
-                      <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-200/50 text-center">
+                      <div className="p-2.5 bg-white/5 rounded-xl border border-white/10/50 text-center">
                         <span className="text-[10px] text-zinc-400 font-bold uppercase block">Audio</span>
                         <strong className="text-xs text-emerald-650 text-emerald-600 font-sans">TTS 🎧</strong>
                       </div>
@@ -1113,8 +1111,8 @@ export default function Marketplace() {
                       onClick={() => toggleOfflineDownload(selectedPub.id)}
                       className={`w-full max-w-[260px] py-2 px-3.5 mt-4 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-center gap-2 cursor-pointer ${
                         offlineMags.includes(selectedPub.id)
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-250/50 hover:bg-emerald-100'
-                          : 'bg-zinc-50 text-zinc-650 border-zinc-200 hover:bg-zinc-100'
+                          ? 'bg-emerald-900/30 text-emerald-700 border-emerald-250/50 hover:bg-emerald-100'
+                          : 'bg-white/5 text-zinc-300 border-white/10 hover:bg-[#1A1A1A]/10'
                       }`}
                     >
                       <span>💾</span>
@@ -1129,7 +1127,7 @@ export default function Marketplace() {
                       <span className="px-3 py-1 bg-[#00c896]/10 text-[#00c896] border border-[#00c896]/15 text-[10px] uppercase tracking-widest font-black rounded-full inline-block mb-3">
                         {selectedPub.category || 'General'}
                       </span>
-                      <h2 className="text-xl sm:text-2xl font-black text-zinc-900 tracking-tight leading-snug">
+                      <h2 className="text-xl sm:text-2xl font-black text-gray-100 tracking-tight leading-snug">
                         {selectedPub.title}
                       </h2>
                       <p className="text-xs font-medium text-zinc-450 mt-1">
@@ -1141,7 +1139,7 @@ export default function Marketplace() {
                         <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-[#00c896] mb-1 px-1">
                           Publication Summary
                         </h4>
-                        <p className="p-4 bg-[#F5F6F8] border border-zinc-250/20 text-xs text-zinc-700 rounded-xl leading-relaxed whitespace-pre-line italic">
+                        <p className="p-4 bg-[#F5F6F8] border border-zinc-250/20 text-xs text-zinc-300 rounded-xl leading-relaxed whitespace-pre-line italic">
                           "{selectedPub.summary || "This digital edition is scanned and optimized for ConvoMag smart dialogues. Interact directly to fetch summaries of specific columns, tables or advertiser layouts."}"
                         </p>
                       </div>
@@ -1156,7 +1154,7 @@ export default function Marketplace() {
                             {selectedPub.topics.map((tag) => (
                               <span
                                 key={tag}
-                                className="px-2.5 py-1 bg-zinc-50 border border-zinc-150 rounded-lg text-zinc-600 hover:bg-zinc-100 transition text-[10px] uppercase font-bold tracking-wider font-mono cursor-pointer"
+                                className="px-2.5 py-1 bg-white/5 border border-white/5 rounded-lg text-zinc-600 hover:bg-[#1A1A1A]/10 transition text-[10px] uppercase font-bold tracking-wider font-mono cursor-pointer"
                                 onClick={() => setSearch(tag)}
                               >
                                 #{tag}
@@ -1177,10 +1175,10 @@ export default function Marketplace() {
                               <button
                                 key={aIdx}
                                 onClick={() => navigate(`/reader?pub=${selectedPub.id}&page=${art.page - 1}`)}
-                                className="p-2.5 bg-white border border-zinc-200 hover:border-[#00c896] hover:bg-zinc-50 font-sans rounded-xl text-[11px] font-bold text-zinc-800 text-left transition flex items-center justify-between group cursor-pointer"
+                                className="p-2.5 bg-[#0A0A0A] border border-white/10 hover:border-[#00c896] hover:bg-[#1A1A1A]/5 font-sans rounded-xl text-[11px] font-bold text-zinc-200 text-left transition flex items-center justify-between group cursor-pointer"
                               >
                                 <span className="line-clamp-1 flex-1 group-hover:text-[#00c896]">{art.title}</span>
-                                <span className="text-[9px] font-mono uppercase bg-zinc-50 border border-zinc-100 px-1.5 py-0.5 rounded-md text-zinc-400 ml-2 group-hover:text-[#00c896] group-hover:bg-[#00c896]/5 shrink-0">Page {art.page}</span>
+                                <span className="text-[9px] font-mono uppercase bg-white/5 border border-white/5 px-1.5 py-0.5 rounded-md text-zinc-400 ml-2 group-hover:text-[#00c896] group-hover:bg-[#00c896]/5 shrink-0">Page {art.page}</span>
                               </button>
                             ))}
                           </div>
@@ -1189,7 +1187,7 @@ export default function Marketplace() {
                     </div>
 
                     {/* Pre-reading Upgraded Matrix Options and Key Topics */}
-                    <div className="mt-8 border-t border-zinc-150 pt-6">
+                    <div className="mt-8 border-t border-white/5 pt-6">
                       <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-[#00c896] mb-3 px-1">
                         Select Conversational Reader Action
                       </h4>
@@ -1212,7 +1210,7 @@ export default function Marketplace() {
                           className={`p-4 rounded-2xl text-left transition relative overflow-hidden group shadow-sm cursor-pointer ${
                             selectedPub.aiEnabled
                               ? "bg-indigo-600 text-white hover:bg-indigo-750"
-                              : "bg-zinc-100 text-zinc-400 border border-zinc-200 cursor-not-allowed"
+                              : "bg-white/10 text-zinc-400 border border-white/10 cursor-not-allowed"
                           }`}
                         >
                           <div className="font-sans font-extrabold text-xs flex items-center gap-2">
@@ -1227,7 +1225,7 @@ export default function Marketplace() {
 
                         <button
                           onClick={() => navigate(`/reader?pub=${selectedPub.id}&tts=true`)}
-                          className="p-4 bg-emerald-50 text-emerald-95 border border-emerald-150 rounded-2xl text-left transition hover:bg-emerald-100 shadow-xs cursor-pointer"
+                          className="p-4 bg-emerald-900/30 text-emerald-95 border border-emerald-150 rounded-2xl text-left transition hover:bg-emerald-100 shadow-xs cursor-pointer"
                         >
                           <div className="font-sans font-extrabold text-xs flex items-center gap-2">
                             <span>🎧</span> Listen to Summary
@@ -1239,7 +1237,7 @@ export default function Marketplace() {
 
                         <button
                           onClick={() => navigate(`/reader?pub=${selectedPub.id}&search=true`)}
-                          className="p-4 bg-white border border-zinc-200 text-zinc-850 hover:bg-zinc-50 rounded-2xl text-left transition hover:border-[#00c896] shadow-xs cursor-pointer"
+                          className="p-4 bg-[#0A0A0A] border border-white/10 text-zinc-850 hover:bg-[#1A1A1A]/5 rounded-2xl text-left transition hover:border-[#00c896] shadow-xs cursor-pointer"
                         >
                           <div className="font-sans font-extrabold text-xs flex items-center gap-2">
                             <span>🔍</span> Search Inside
@@ -1251,7 +1249,7 @@ export default function Marketplace() {
                       </div>
 
                       {/* Key Topics Mapping Section */}
-                      <div className="p-4 bg-amber-50 border border-amber-100/50 rounded-2xl mb-4 text-left">
+                      <div className="p-4 bg-amber-900/30 border border-amber-100/50 rounded-2xl mb-4 text-left">
                         <div className="font-sans font-extrabold text-xs text-amber-900 flex items-center gap-2 mb-1.5 font-sans">
                           <span>🔑</span> Key Topics Mapping
                         </div>
@@ -1266,9 +1264,9 @@ export default function Marketplace() {
 
                       {/* QUICK ASK DYNAMIC COMPANION FORM */}
                       {selectedPub.aiEnabled && (
-                        <div className="mt-5 bg-indigo-50/50 border border-indigo-200/30 p-4 rounded-2xl">
-                          <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-700 mb-2 flex items-center gap-1.5">
-                            <Sparkles size={11} className="fill-indigo-600 text-indigo-600" />
+                        <div className="mt-5 bg-indigo-900/30/50 border border-indigo-200/30 p-4 rounded-2xl">
+                          <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-300 mb-2 flex items-center gap-1.5">
+                            <Sparkles size={11} className="fill-indigo-600 text-indigo-400" />
                             <span>Quick Ask Companion Panel</span>
                           </h4>
                           
@@ -1288,7 +1286,7 @@ export default function Marketplace() {
                               value={askQuery}
                               onChange={(e) => setAskQuery(e.target.value)}
                               placeholder="What would you like to know about this issue?"
-                              className="flex-1 px-4 py-2.5 bg-white border border-zinc-200 rounded-xl text-[11px] text-zinc-800 placeholder-zinc-400 font-sans focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              className="flex-1 px-4 py-2.5 bg-[#0A0A0A] border border-white/10 rounded-xl text-[11px] text-zinc-200 placeholder-zinc-400 font-sans focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                             <button
                               type="submit"
@@ -1315,7 +1313,7 @@ export default function Marketplace() {
                                 key={chipText}
                                 type="button"
                                 onClick={() => setAskQuery(chipText)}
-                                className="px-2 py-0.5 bg-white hover:bg-indigo-100 text-zinc-600 hover:text-indigo-800 transition rounded-md border border-zinc-150-50 text-[9px] font-medium"
+                                className="px-2 py-0.5 bg-[#0A0A0A] hover:bg-indigo-100 text-zinc-600 hover:text-indigo-800 transition rounded-md border border-white/5-50 text-[9px] font-medium"
                               >
                                 {chipText}
                               </button>
@@ -1336,7 +1334,7 @@ export default function Marketplace() {
       </AnimatePresence>
 
       {/* Floating Bottom Nav precisely following layout styles (Home, Library, Create, Profile) */}
-      <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-zinc-150-50/50 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] z-[140] py-3.5 px-4">
+      <nav className="fixed bottom-0 inset-x-0 bg-[#0A0A0A] border-t border-white/5-50/50 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] z-[140] py-3.5 px-4">
         <div className="max-w-xl mx-auto flex items-center justify-around">
           
           <button 
@@ -1348,7 +1346,7 @@ export default function Marketplace() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={`flex flex-col items-center justify-center space-y-1 transition ${
-              activeTab === 'home' ? 'text-[#00c896]' : 'text-zinc-400 hover:text-zinc-800'
+              activeTab === 'home' ? 'text-[#00c896]' : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             <BookOpen size={18} className={activeTab === 'home' ? 'stroke-[2.25]' : ''} />
@@ -1361,7 +1359,7 @@ export default function Marketplace() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={`flex flex-col items-center justify-center space-y-1 transition ${
-              activeTab === 'library' ? 'text-[#00c896]' : 'text-zinc-400 hover:text-zinc-800'
+              activeTab === 'library' ? 'text-[#00c896]' : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             <Bookmark size={18} className={activeTab === 'library' ? 'stroke-[2.25] text-[#00c896]' : ''} />
@@ -1370,7 +1368,7 @@ export default function Marketplace() {
 
           <button 
             onClick={() => navigate('/publish')}
-            className="flex flex-col items-center justify-center space-y-1 transition text-zinc-400 hover:text-zinc-800"
+            className="flex flex-col items-center justify-center space-y-1 transition text-zinc-400 hover:text-zinc-200"
           >
             <LayoutDashboard size={18} />
             <span className="text-[10px] font-medium text-zinc-500">Create</span>
@@ -1378,7 +1376,7 @@ export default function Marketplace() {
 
           <button 
             onClick={() => setShowPricing(true)}
-            className="flex flex-col items-center justify-center space-y-1 transition text-zinc-400 hover:text-zinc-800"
+            className="flex flex-col items-center justify-center space-y-1 transition text-zinc-400 hover:text-zinc-200"
           >
             <User size={18} />
             <span className="text-[10px] font-medium text-zinc-500">Profile</span>
@@ -1403,18 +1401,18 @@ export default function Marketplace() {
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              className="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-[210] flex flex-col p-6"
+              className="fixed inset-y-0 left-0 w-72 bg-[#0A0A0A] shadow-2xl z-[210] flex flex-col p-6"
             >
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center space-x-2">
                   <div className="bg-[#00c896] h-8 w-8 rounded-lg flex items-center justify-center text-white font-extrabold text-sm">
                     C
                   </div>
-                  <span className="font-extrabold tracking-tight text-md text-zinc-800">
+                  <span className="font-extrabold tracking-tight text-md text-zinc-200">
                     ConvoMag AI
                   </span>
                 </div>
-                <button onClick={() => setShowSideDrawer(false)} className="text-zinc-400 hover:text-zinc-800">
+                <button onClick={() => setShowSideDrawer(false)} className="text-zinc-400 hover:text-zinc-200">
                   <X size={18} />
                 </button>
               </div>
@@ -1430,7 +1428,7 @@ export default function Marketplace() {
                     setActiveFilterType('all');
                     setShowSideDrawer(false);
                   }}
-                  className="w-full text-left font-bold text-sm text-zinc-700 hover:text-[#00c896] py-1 block"
+                  className="w-full text-left font-bold text-sm text-zinc-300 hover:text-[#00c896] py-1 block"
                 >
                   🏠 Curated Catalog Desk
                 </button>
@@ -1440,7 +1438,7 @@ export default function Marketplace() {
                     navigate('/publish');
                     setShowSideDrawer(false);
                   }}
-                  className="w-full text-left font-bold text-sm text-zinc-700 hover:text-[#00c896] py-1 block"
+                  className="w-full text-left font-bold text-sm text-zinc-300 hover:text-[#00c896] py-1 block"
                 >
                   📂 Publisher Workspace
                 </button>
@@ -1450,12 +1448,12 @@ export default function Marketplace() {
                     navigate('/remix');
                     setShowSideDrawer(false);
                   }}
-                  className="w-full text-left font-bold text-sm text-zinc-700 hover:text-[#00c896] py-1 block"
+                  className="w-full text-left font-bold text-sm text-zinc-300 hover:text-[#00c896] py-1 block"
                 >
                   🎙️ Voice Remix Sandbox
                 </button>
 
-                <div className="h-px bg-zinc-100 my-4" />
+                <div className="h-px bg-white/10 my-4" />
 
                 <div className="text-[10px] font-extrabold tracking-widest text-zinc-400 uppercase">
                   Featured publications
@@ -1466,7 +1464,7 @@ export default function Marketplace() {
                     navigate('/reader?pub=mag_1');
                     setShowSideDrawer(false);
                   }}
-                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-zinc-900 block py-0.5 truncate"
+                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-gray-100 block py-0.5 truncate"
                 >
                   The Economist (AI Edition)
                 </button>
@@ -1476,7 +1474,7 @@ export default function Marketplace() {
                     navigate('/reader?pub=mag_rs');
                     setShowSideDrawer(false);
                   }}
-                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-zinc-900 block py-0.5 truncate"
+                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-gray-100 block py-0.5 truncate"
                 >
                   Rolling Stone Magazine
                 </button>
@@ -1486,13 +1484,13 @@ export default function Marketplace() {
                     navigate('/reader?pub=paper_wsj');
                     setShowSideDrawer(false);
                   }}
-                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-zinc-900 block py-0.5 truncate"
+                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-gray-100 block py-0.5 truncate"
                 >
                   The Wall Street Journal
                 </button>
               </div>
 
-              <div className="border-t border-zinc-100 pt-5 text-[10px] font-mono text-zinc-400 mt-auto">
+              <div className="border-t border-white/5 pt-5 text-[10px] font-mono text-zinc-400 mt-auto">
                 <p>Curated Design Calibrations</p>
                 <p className="mt-1">© {new Date().getFullYear()} ConvoMag Project</p>
               </div>
@@ -1502,7 +1500,7 @@ export default function Marketplace() {
         )}
       </AnimatePresence>
 
-      <footer className="border-t border-zinc-200 bg-white py-10 mt-12 mb-16">
+      <footer className="border-t border-white/10 bg-[#0A0A0A] py-10 mt-12 mb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center space-x-2">
             <div className="bg-zinc-200 text-zinc-500 font-bold p-1 rounded text-xs">CM</div>

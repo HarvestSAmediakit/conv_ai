@@ -589,7 +589,8 @@ app.post('/api/magazines/:id/chat', async (req, res) => {
       }
 
     } catch (aiError: any) {
-      console.warn("Server chat: Falling back to local offline search engine:", aiError.message);
+      const errorMsg = aiError.message || String(aiError);
+      console.warn("Server chat: Falling back to local offline search engine. Reason:", errorMsg.substring(0, 100));
       
       const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
       const paragraphs = contextText.split(/\n\s*\n|\n(?=###|\*)/);
@@ -609,9 +610,18 @@ app.post('/api/magazines/:id/chat', async (req, res) => {
         matchedParagraphs.sort((a, b) => b.length - a.length);
         const topMatches = matchedParagraphs.slice(0, 3);
         
+        let offlineReason = `Configure GEMINI_API_KEY in Settings to enable live synthetic conversational dialogue.`;
+        if (aiError.message && (aiError.message.includes("429") || aiError.message.includes("quota"))) {
+          offlineReason = `The AI service is currently experiencing high load or has exceeded its quota limits. Returning offline search results.`;
+        } else if (aiError.message && (aiError.message.includes("403") || aiError.message.includes("401"))) {
+           offlineReason = `The AI service key is invalid. Returning offline search results.`;
+        } else if (aiError.message) {
+           offlineReason = `The AI service encountered an error (${aiError.message.substring(0, 50)}...). Returning offline search results.`;
+        }
+        
         answerText = `Here is what I found in the magazine concerning your query:\n\n` + 
           topMatches.map(m => m.trim()).join("\n\n") + 
-          `\n\n*(Note: Showing direct entries found offline in the local index database. Configure GEMINI_API_KEY in Settings to enable live synthetic conversational dialogue.)*`;
+          `\n\n*(Note: Showing direct entries found in the local index database. ${offlineReason})*`;
 
         topMatches.forEach(m => {
           const pageMatch = m.match(/(?:page[:\s]?\s*|page\s+x[:\s]?\s*|target\s+publication\s+page[:\s]?\s*|target\s+page\s+x[:\s]?\s*)(\d+)/i);
@@ -631,8 +641,9 @@ app.post('/api/magazines/:id/chat', async (req, res) => {
     });
 
   } catch (err: any) {
-    console.error("Chat handler failure:", err);
-    res.status(500).json({ error: err.message });
+    const errorMsg = err.message || String(err);
+    console.error("Chat handler failure:", errorMsg.substring(0, 100));
+    res.status(500).json({ error: errorMsg.substring(0, 500) });
   }
 });
 
@@ -661,8 +672,9 @@ app.post('/api/magazines/:id/summarize-section', async (req, res) => {
 
     res.json({ summary: response.text || "" });
   } catch (err: any) {
-    console.error("Summarization failure:", err);
-    res.status(500).json({ error: err.message });
+    const errorMsg = err.message || String(err);
+    console.error("Summarization failure:", errorMsg.substring(0, 100));
+    res.status(500).json({ error: errorMsg.substring(0, 500) });
   }
 });
 
@@ -802,8 +814,9 @@ app.post('/api/magazines/:id/podcast', async (req, res) => {
     const script = JSON.parse(result.text || "{}");
     res.json(script);
   } catch (error: any) {
-    console.error("Podcast Generation Error:", error);
-    res.status(500).json({ error: error.message });
+    const errorMsg = error.message || String(error);
+    console.error("Podcast Generation Error:", errorMsg.substring(0, 100));
+    res.status(500).json({ error: errorMsg.substring(0, 500) });
   }
 });
 
@@ -840,8 +853,9 @@ app.post('/api/magazines/:id/chat-rag', async (req, res) => {
       citations: contextChunks.map(c => ({ id: c.id, content: c.content }))
     });
   } catch (error: any) {
-    console.error("RAG Chat Error:", error);
-    res.status(500).json({ error: error.message });
+    const errorMsg = error.message || String(error);
+    console.error("RAG Chat Error:", errorMsg.substring(0, 100));
+    res.status(500).json({ error: errorMsg.substring(0, 500) });
   }
 });
 
@@ -1198,9 +1212,10 @@ Return EXACTLY a JSON dictionary structured as follows:
     console.log(`[Local Schema Lab] Complete! Native extraction successfully persisted for job: ${extractionId}`);
 
   } catch (err: any) {
-    console.error(`[Local Schema Lab Job failed]:`, err);
+    const errorMsg = err.message || String(err);
+    console.error(`[Local Schema Lab Job failed]:`, errorMsg.substring(0, 100));
     db.prepare('UPDATE docupipe_extractions SET status = ?, error = ? WHERE id = ?')
-      .run('failed', err.message || String(err), extractionId);
+      .run('failed', errorMsg.substring(0, 500), extractionId);
   }
 }
 
@@ -1834,8 +1849,9 @@ ENFORCEMENT RULES:
       // session.close(); // SDK handles automatic cleanup on disconnect usually, but good to be explicit
     });
 
-  } catch (error) {
-    console.error("Failed to connect to Gemini Live:", error);
+  } catch (error: any) {
+    const errorMsg = error?.message || String(error);
+    console.error("Failed to connect to Gemini Live:", errorMsg.substring(0, 100));
     clientWs.close();
   }
 });

@@ -13,15 +13,19 @@ import Profile from './components/Profile';
 import AdvertiserDashboard from './components/AdvertiserDashboard';
 import AudioInterruptReader from './components/AudioInterruptReader';
 
+const InteractiveImageBentoGalleryDemo = React.lazy(() => import('./components/bento-gallery-demo'));
+
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/home" element={<HomeDashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/hub" element={<Marketplace />} />
-        <Route path="/publish" element={<PublisherDashboard />} />
+    <React.Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-zinc-500 font-mono text-sm">Loading Media Library...</div>}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<HomeDashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/hub" element={<Marketplace />} />
+          <Route path="/bento" element={<InteractiveImageBentoGalleryDemo />} />
+          <Route path="/publish" element={<PublisherDashboard />} />
         <Route path="/reader" element={<ReaderApp />} />
         <Route path="/flipbook/:id" element={<FlipbookReader />} />
         <Route path="/remix" element={<RemixHarvestSA />} />
@@ -32,6 +36,7 @@ export default function App() {
         <Route path="/demo" element={<AudioInterruptReader />} />
       </Routes>
     </BrowserRouter>
+    </React.Suspense>
   );
 }
 

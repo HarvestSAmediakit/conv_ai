@@ -230,19 +230,19 @@ export default function RemixHarvestSA() {
   };
 
   return (
-    <div className="bg-[#FAF9F6] h-screen overflow-hidden flex flex-col m-0 p-0 font-sans text-zinc-900 blueprint-grid">
+    <div className="bg-[#050505] h-screen overflow-hidden flex flex-col m-0 p-0 font-sans text-gray-100 blueprint-grid">
       {/* Premium Editorial Header Console */}
-      <div className="bg-[#FAF9F6]/90 text-zinc-900 px-6 py-4 flex items-center justify-between border-b border-zinc-200/50 z-50 backdrop-blur-md">
+      <div className="bg-[#050505]/90 text-gray-100 px-6 py-4 flex items-center justify-between border-b border-white/10/50 z-50 backdrop-blur-md">
         <div className="flex items-center space-x-3.5">
           <button 
             onClick={() => navigate('/hub')}
-            className="p-2 hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-all cursor-pointer"
+            className="p-2 hover:bg-[#1A1A1A]/10 border border-white/10 rounded-xl transition-all cursor-pointer"
             title="Return to Newsstand"
           >
-            <BookOpen size={16} className="text-zinc-650" />
+            <BookOpen size={16} className="text-zinc-300" />
           </button>
-          <span className="bg-zinc-100 border border-zinc-200 text-[8px] uppercase px-2.5 py-1 rounded font-mono tracking-widest text-zinc-600 font-semibold">Remix Exhibition</span>
-          <h1 className="text-sm font-serif font-medium tracking-wide text-zinc-800">Harvest SA Multimodal Live API</h1>
+          <span className="bg-white/10 border border-white/10 text-[8px] uppercase px-2.5 py-1 rounded font-mono tracking-widest text-zinc-600 font-semibold">Remix Exhibition</span>
+          <h1 className="text-sm font-serif font-medium tracking-wide text-zinc-200">Harvest SA Multimodal Live API</h1>
         </div>
         <div className="flex items-center space-x-4">
           <div className="relative group">
@@ -251,13 +251,13 @@ export default function RemixHarvestSA() {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter Gemini API Key" 
-              className="bg-white/60 border border-zinc-200 rounded-xl text-xs pl-4 pr-10 py-2 w-48 text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all focus:w-64 placeholder:text-zinc-400"
+              className="bg-[#0A0A0A]/60 border border-white/10 rounded-xl text-xs pl-4 pr-10 py-2 w-48 text-zinc-200 focus:outline-none focus:border-indigo-500/50 transition-all focus:w-64 placeholder:text-zinc-400"
             />
             <Settings size={13} className="absolute right-4.5 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-zinc-600" />
           </div>
           <select 
             onChange={(e) => changePreset(e.target.value)}
-            className="bg-white/60 border border-zinc-200 rounded-xl text-xs px-4 py-2 text-zinc-700 font-mono focus:outline-none focus:border-indigo-500/50 transition-all cursor-pointer"
+            className="bg-[#0A0A0A]/60 border border-white/10 rounded-xl text-xs px-4 py-2 text-zinc-300 font-mono focus:outline-none focus:border-indigo-500/50 transition-all cursor-pointer"
           >
             <option value="croplan">Scenario: Croplan Seed Expert</option>
             <option value="stihl">Scenario: STIHL Technical Guide</option>
@@ -268,7 +268,7 @@ export default function RemixHarvestSA() {
       {/* Main Workspace */}
       <div className="flex-1 flex flex-col md:flex-row relative">
         {/* Digital Magazine Container */}
-        <div className="w-full h-full bg-white relative">
+        <div className="w-full h-full bg-[#0A0A0A] relative">
           <iframe 
             src="https://www.harvestsa.co.za/magazine/82/mobile/" 
             className="w-full h-full border-none" 
@@ -281,7 +281,7 @@ export default function RemixHarvestSA() {
         <motion.div 
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="absolute bottom-6 right-6 w-80 glass-panel rounded-3xl shadow-2xl overflow-hidden z-50 border border-zinc-200/50"
+          className="absolute bottom-6 right-6 w-80 glass-panel rounded-3xl shadow-2xl overflow-hidden z-50 border border-white/10/50"
         >
           {/* Widget Header with Subtle, Matte Gradient */}
           <div className={`bg-gradient-to-r ${activePreset.theme} p-5 text-white transition-all duration-500 relative overflow-hidden`}>
@@ -298,7 +298,7 @@ export default function RemixHarvestSA() {
           </div>
 
           {/* Control Panel */}
-          <div className="p-6.5 flex flex-col items-center bg-white/70">
+          <div className="p-6.5 flex flex-col items-center bg-[#0A0A0A]/70">
             <div className="relative mb-6">
               <AnimatePresence>
                 {isConnected && (
@@ -333,7 +333,7 @@ export default function RemixHarvestSA() {
                 : "Enter your Gemini API key above and tap the microphone to begin the low-latency conversation layer."}
             </p>
             
-            <div className="mt-5 flex items-center gap-2 text-[10px] text-zinc-500 bg-zinc-50 border border-zinc-150 px-4 py-2 rounded-xl">
+            <div className="mt-5 flex items-center gap-2 text-[10px] text-zinc-500 bg-white/5 border border-white/5 px-4 py-2 rounded-xl">
               <ExternalLink size={10} />
               <span>Reference Source: Harvest SA #82</span>
             </div>

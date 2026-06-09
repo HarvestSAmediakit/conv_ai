@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Mic,
+import RadialOrbitalTimeline from "./ui/radial-orbital-timeline";
+import { Mic,
   MicOff,
   ChevronDown,
   ChevronUp,
@@ -27,6 +27,7 @@ import {
   WifiOff,
   Download,
   HelpCircle,
+  Settings,
 } from "lucide-react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -37,6 +38,8 @@ import ConversationalPodcast from "./ConversationalPodcast";
 import PWAInstallPrompt from "./PWAInstallPrompt";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 import JustGeneratedModal from "./JustGeneratedModal";
+import CacheManagerModal from "./CacheManagerModal";
+import { voicePresets } from "@/lib/voices";
 
 function pcmToBase64(pcmData: Float32Array): string {
   const buffer = new ArrayBuffer(pcmData.length * 2);
@@ -71,7 +74,9 @@ export default function ReaderApp() {
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [isPWAInstallPromptOpen, setIsPWAInstallPromptOpen] = useState(false);
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false);
+  const [isCacheManagerOpen, setIsCacheManagerOpen] = useState(false);
   const [isJustGeneratedOpen, setIsJustGeneratedOpen] = useState(() => searchParams.get("justGenerated") === "true");
+  const [selectedVoiceId, setSelectedVoiceId] = useState("en-us-female-1");
 
   // Slides Navigator Grid View & Full-Text Search states
   const [isGridViewOpen, setIsGridViewOpen] = useState(false);
@@ -174,6 +179,9 @@ export default function ReaderApp() {
         } else if (isKeyboardShortcutsOpen) {
           setIsKeyboardShortcutsOpen(false);
           e.preventDefault();
+        } else if (isCacheManagerOpen) {
+          setIsCacheManagerOpen(false);
+          e.preventDefault();
         } else if (isNotesOpen) {
           setIsNotesOpen(false);
           e.preventDefault();
@@ -189,7 +197,7 @@ export default function ReaderApp() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSearchOpen, isGridViewOpen, isKeyboardShortcutsOpen, isNotesOpen]);
+  }, [isSearchOpen, isGridViewOpen, isKeyboardShortcutsOpen, isCacheManagerOpen, isNotesOpen]);
 
   const sendChatMessage = async (msgText: string) => {
     if (!msgText.trim()) return;
@@ -656,8 +664,8 @@ export default function ReaderApp() {
   };
 
   let badgeText = isConnected ? "Live Podcast Active" : "Ready";
-  let badgeIconColor = "bg-white/50";
-  let actionBtnClass = "bg-white/20 hover:bg-white/30";
+  let badgeIconColor = "bg-[#0A0A0A]/50";
+  let actionBtnClass = "bg-[#0A0A0A]/20 hover:bg-[#0A0A0A]/30";
   let pulseClass = "opacity-0";
 
   if (isConnected && activePub) {
@@ -699,14 +707,27 @@ export default function ReaderApp() {
     );
   }
 
+// Map to TimelineItem structure
+  const timelineData = Array.from(new Array(activePub?.pageCount || 5)).map((_, i) => ({
+    id: i + 1,
+    title: `Page ${i + 1}`,
+    date: "2024",
+    content: "Slide content overview",
+    category: "Slide",
+    icon: Sparkles, // Use a default icon
+    relatedIds: [Math.max(1, i), Math.min(activePub?.pageCount || 5, i + 2)],
+    status: i < (activePub?.pageCount || 0) / 2 ? "completed" : "pending",
+    energy: Math.floor(Math.random() * 100),
+  }));
+
   return (
-    <div ref={containerRef} className="flex flex-col h-screen w-screen overflow-hidden bg-[#FAF9F6] relative selection:bg-indigo-500/10 blueprint-grid">
+    <div ref={containerRef} className="flex flex-col h-screen w-screen overflow-hidden bg-[#050505] relative selection:bg-indigo-500/10 blueprint-grid">
       {/* Global Back Navigation */}
       <motion.button
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         onClick={() => navigate("/hub")}
-        className="absolute top-6 left-6 z-[100] h-12 w-12 bg-white/70 hover:bg-white backdrop-blur-3xl border border-zinc-200 rounded-full flex items-center justify-center text-zinc-800 transition-all shadow-md group cursor-pointer"
+        className="absolute top-6 left-6 z-[100] h-12 w-12 bg-[#0A0A0A]/70 hover:bg-[#0A0A0A] backdrop-blur-3xl border border-white/10 rounded-full flex items-center justify-center text-zinc-200 transition-all shadow-md group cursor-pointer"
       >
         <ArrowLeft
           size={18}
@@ -721,16 +742,16 @@ export default function ReaderApp() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="absolute top-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2.5 bg-white/95 backdrop-blur-3xl rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-zinc-200 flex items-center gap-3 pointer-events-none"
+              className="absolute top-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2.5 bg-[#0A0A0A]/95 backdrop-blur-3xl rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-white/10 flex items-center gap-3 pointer-events-none"
            >
              <div className="relative flex items-center justify-center">
-               <Loader2 size={14} className="text-indigo-600 animate-spin" />
+               <Loader2 size={14} className="text-indigo-400 animate-spin" />
                <div className="absolute inset-0 bg-indigo-500/20 rounded-full animate-ping" />
              </div>
-             <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-700">
+             <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-300">
                 Caching to IndexedDB ({syncProgress}%)
              </span>
-             <div className="w-20 h-1.5 bg-zinc-100 rounded-full overflow-hidden ml-1">
+             <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden ml-1">
                <div 
                  className="h-full bg-indigo-500 rounded-full transition-all duration-300 ease-out"
                  style={{ width: `${syncProgress}%` }}
@@ -754,19 +775,19 @@ export default function ReaderApp() {
           <span>GO PRO</span>
         </button>
 
-        <div className="flex bg-white/80 backdrop-blur-3xl border border-zinc-200/80 rounded-full p-1.5 shadow-lg shadow-zinc-200/50 flex-1 overflow-x-auto no-scrollbar justify-between sm:justify-start gap-1">
+        <div className="flex bg-[#0A0A0A]/80 backdrop-blur-3xl border border-white/10/80 rounded-full p-1.5 shadow-lg shadow-zinc-200/50 flex-1 overflow-x-auto no-scrollbar justify-between sm:justify-start gap-1">
           <button
             onClick={() => setIsNarrationEnabled(!isNarrationEnabled)}
             className={`h-12 w-12 sm:h-10 sm:w-auto sm:px-3.5 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center gap-1.5 transition-all cursor-pointer ${
               isNarrationEnabled 
-                ? "text-indigo-650 bg-indigo-50/40 rounded-full font-bold" 
+                ? "text-indigo-650 bg-indigo-900/30/40 rounded-full font-bold" 
                 : "text-zinc-400"
             }`}
             title={isNarrationEnabled ? "Disable Narration" : "Enable Narration"}
             id="narration-toggle"
           >
             {isNarrationEnabled ? (
-              <Volume2 size={18} className="text-indigo-600 sm:w-4 sm:h-4" />
+              <Volume2 size={18} className="text-indigo-400 sm:w-4 sm:h-4" />
             ) : (
               <VolumeX size={18} className="text-zinc-400 sm:w-4 sm:h-4" />
             )}
@@ -777,7 +798,7 @@ export default function ReaderApp() {
           <div className="w-[1px] h-6 bg-zinc-200 my-auto mx-1 hidden sm:block shrink-0" />
           <button
             onClick={toggleFullscreen}
-            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full hidden sm:flex shrink-0 items-center justify-center text-zinc-800 transition-all cursor-pointer"
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full hidden sm:flex shrink-0 items-center justify-center text-zinc-200 transition-all cursor-pointer"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? <MinimizeIcon size={18} /> : <Maximize size={18} />}
@@ -786,7 +807,7 @@ export default function ReaderApp() {
           <button
             onClick={() => setIsPodcastModeOpen(!isPodcastModeOpen)}
             className={`h-12 w-12 sm:h-10 sm:w-auto sm:px-3 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              isPodcastModeOpen ? "bg-emerald-50 text-emerald-700 font-bold" : "text-zinc-800"
+              isPodcastModeOpen ? "bg-emerald-900/30 text-emerald-700 font-bold" : "text-zinc-200"
             }`}
              title="Conversational AI Podcast"
           >
@@ -802,7 +823,7 @@ export default function ReaderApp() {
                 }));
               }
             }}
-            className="h-12 w-12 sm:h-10 sm:w-auto sm:px-3 hover:bg-black/[0.04] rounded-full shrink-0 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-zinc-800 hidden sm:flex"
+            className="h-12 w-12 sm:h-10 sm:w-auto sm:px-3 hover:bg-black/[0.04] rounded-full shrink-0 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-zinc-200 hidden sm:flex"
             title="Ask AI about this page"
           >
             <Sparkles size={18} className="text-zinc-600 sm:w-4 sm:h-4" />
@@ -811,10 +832,10 @@ export default function ReaderApp() {
           
           <button
             onClick={() => setIsChatOpen(true)}
-            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-800 transition-all cursor-pointer relative"
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-200 transition-all cursor-pointer relative"
             title="Interactive AI Chat"
           >
-            <MessageSquare size={18} className="text-indigo-650 text-indigo-600 sm:w-4 sm:h-4" />
+            <MessageSquare size={18} className="text-indigo-650 text-indigo-400 sm:w-4 sm:h-4" />
             {isOfflineMode && (
               <span className="absolute top-2.5 sm:top-2 right-2.5 sm:right-2 w-2 h-2 bg-amber-500 rounded-full border border-white" title="Offline Mode Enabled" />
             )}
@@ -822,28 +843,28 @@ export default function ReaderApp() {
 
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-800 transition-all cursor-pointer"
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-200 transition-all cursor-pointer"
             title="Search Slide Content"
           >
             <Search size={18} className="text-zinc-600 sm:w-4 sm:h-4" />
           </button>
           <button
             onClick={() => setIsNotesOpen(true)}
-            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-800 transition-all cursor-pointer hidden sm:flex"
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-200 transition-all cursor-pointer hidden sm:flex"
             title="Saved Notes"
           >
             <StickyNote size={18} className="text-zinc-600 sm:w-4 sm:h-4" />
           </button>
           <button
             onClick={() => setIsGridViewOpen(true)}
-            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-800 transition-all cursor-pointer"
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-200 transition-all cursor-pointer"
             title="Slide Grid Overview"
           >
             <Grid size={18} className="text-zinc-600 sm:w-4 sm:h-4" />
           </button>
           <button
             onClick={handleShare}
-            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full shrink-0 flex items-center justify-center text-zinc-800 transition-all cursor-pointer hidden sm:flex"
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full shrink-0 flex items-center justify-center text-zinc-200 transition-all cursor-pointer hidden sm:flex"
             title="Share Current Page"
           >
             {hasCopied ? (
@@ -854,17 +875,24 @@ export default function ReaderApp() {
           </button>
           <button
             onClick={() => setIsPWAInstallPromptOpen(true)}
-            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-800 transition-all cursor-pointer"
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-200 transition-all cursor-pointer"
             title="Install magazine for offline performance"
           >
             <Download size={18} className="text-emerald-500 hover:text-emerald-600 sm:w-4 sm:h-4" />
           </button>
           <button
+            onClick={() => setIsCacheManagerOpen(true)}
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-805 transition-all cursor-pointer"
+            title="Manage Storage & Cache"
+          >
+            <Settings size={18} className="text-zinc-600 hover:text-indigo-400 sm:w-4 sm:h-4 transition-transform duration-300 hover:rotate-45" />
+          </button>
+          <button
             onClick={() => setIsKeyboardShortcutsOpen(true)}
-            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-800 transition-all cursor-pointer"
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-200 transition-all cursor-pointer"
             title="Keyboard Shortcuts Guide"
           >
-            <HelpCircle size={18} className="text-zinc-600 hover:text-indigo-600 sm:w-4 sm:h-4" />
+            <HelpCircle size={18} className="text-zinc-600 hover:text-indigo-400 sm:w-4 sm:h-4" />
           </button>
         </div>
       </motion.div>
@@ -883,12 +911,12 @@ export default function ReaderApp() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 30 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white border border-zinc-200/80 rounded-[2.5rem] w-full max-w-6xl h-[85vh] shadow-[0_24px_60px_rgba(24,24,27,0.1)] overflow-hidden flex flex-col pointer-events-auto"
+              className="bg-[#0A0A0A] border border-white/10/80 rounded-[2.5rem] w-full max-w-6xl h-[85vh] shadow-[0_24px_60px_rgba(24,24,27,0.1)] overflow-hidden flex flex-col pointer-events-auto"
             >
-              <div className="flex justify-between items-center p-8 sm:px-10 border-b border-zinc-150 shrink-0 bg-white">
+              <div className="flex justify-between items-center p-8 sm:px-10 border-b border-white/5 shrink-0 bg-[#0A0A0A]">
                 <div>
-                  <h3 className="font-serif font-medium text-2xl text-zinc-900 tracking-wide flex items-center gap-3">
-                    <Grid size={22} className="text-indigo-600" /> Publication Navigator
+                  <h3 className="font-serif font-medium text-2xl text-gray-100 tracking-wide flex items-center gap-3">
+                    <Grid size={22} className="text-indigo-400" /> Publication Navigator
                   </h3>
                   <p className="text-[9px] uppercase font-bold tracking-[0.2em] text-[#65635F] mt-2">
                     Visual Slide Directory
@@ -896,13 +924,13 @@ export default function ReaderApp() {
                 </div>
                 <button
                   onClick={() => setIsGridViewOpen(false)}
-                  className="text-zinc-500 hover:text-zinc-900 p-3 rounded-full hover:bg-zinc-100 transition-all border border-zinc-200 bg-white shadow-xs cursor-pointer"
+                  className="text-zinc-500 hover:text-gray-100 p-3 rounded-full hover:bg-[#1A1A1A]/10 transition-all border border-white/10 bg-[#0A0A0A] shadow-xs cursor-pointer"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-[#FAF9F6]/55">
+              <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-[#050505]/55">
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
                   {Array.from(
                     new Array(activePub?.pageCount || 12),
@@ -918,7 +946,7 @@ export default function ReaderApp() {
                             setCurrentPage(i);
                             setIsGridViewOpen(false);
                           }}
-                          className={`group relative aspect-[3/4.2] bg-white rounded-3xl overflow-hidden border cursor-pointer transition-all shadow-sm ${isSelected ? "border-indigo-600 ring-2 ring-indigo-500/10" : "border-zinc-200 hover:border-zinc-450 hover:shadow-md"}`}
+                          className={`group relative aspect-[3/4.2] bg-[#0A0A0A] rounded-3xl overflow-hidden border cursor-pointer transition-all shadow-sm ${isSelected ? "border-indigo-600 ring-2 ring-indigo-500/10" : "border-white/10 hover:border-zinc-450 hover:shadow-md"}`}
                         >
                           <div className="absolute inset-0 flex flex-col justify-between p-6 bg-gradient-to-br from-white/90 to-zinc-50/70">
                             <div className="flex justify-between items-start">
@@ -931,7 +959,7 @@ export default function ReaderApp() {
                             </div>
                             <div className="space-y-3">
                               <div className="h-[1px] w-full bg-zinc-200" />
-                              <p className="text-[10px] font-bold text-zinc-450 group-hover:text-zinc-900 uppercase tracking-widest transition-colors font-sans leading-none">
+                              <p className="text-[10px] font-bold text-zinc-450 group-hover:text-gray-100 uppercase tracking-widest transition-colors font-sans leading-none">
                                 View Slide
                               </p>
                             </div>
@@ -955,12 +983,12 @@ export default function ReaderApp() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="fixed inset-y-0 right-0 z-[150] w-full sm:w-[28rem] h-full bg-[#FAF9F6]/95 backdrop-blur-3xl border-l border-zinc-200 shadow-[0_12px_40px_rgba(0,0,0,0.1)] flex flex-col p-8 pointer-events-auto"
+            className="fixed inset-y-0 right-0 z-[150] w-full sm:w-[28rem] h-full bg-[#050505]/95 backdrop-blur-3xl border-l border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.1)] flex flex-col p-8 pointer-events-auto"
           >
             <div className="flex justify-between items-center mb-10 shrink-0 mt-20 sm:mt-0">
               <div>
-                <h3 className="font-serif font-medium text-2xl text-zinc-900 tracking-wide flex items-center gap-3">
-                  <Search size={22} className="text-indigo-600" /> Deep Search
+                <h3 className="font-serif font-medium text-2xl text-gray-100 tracking-wide flex items-center gap-3">
+                  <Search size={22} className="text-indigo-400" /> Deep Search
                 </h3>
                 <p className="text-[9px] uppercase font-bold tracking-[0.2em] text-zinc-400 mt-2">
                   AI Context Query
@@ -968,7 +996,7 @@ export default function ReaderApp() {
               </div>
               <button
                 onClick={() => setIsSearchOpen(false)}
-                className="text-zinc-500 hover:text-zinc-900 p-3 rounded-full hover:bg-zinc-100 transition-all cursor-pointer border border-zinc-200 bg-white shadow-xs"
+                className="text-zinc-500 hover:text-gray-100 p-3 rounded-full hover:bg-[#1A1A1A]/10 transition-all cursor-pointer border border-white/10 bg-[#0A0A0A] shadow-xs"
               >
                 <X size={20} />
               </button>
@@ -980,7 +1008,7 @@ export default function ReaderApp() {
                 placeholder="Query publication..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full bg-white border border-zinc-200 rounded-2xl pl-12 pr-12 py-4 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-450/10 transition-all font-sans font-medium"
+                className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl pl-12 pr-12 py-4 text-sm text-gray-100 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-450/10 transition-all font-sans font-medium"
                 autoFocus
               />
               <Search
@@ -990,7 +1018,7 @@ export default function ReaderApp() {
               {isSearching && (
                 <Loader2
                   size={16}
-                  className="absolute right-4 top-[19px] text-indigo-600 animate-spin"
+                  className="absolute right-4 top-[19px] text-indigo-400 animate-spin"
                 />
               )}
             </div>
@@ -998,7 +1026,7 @@ export default function ReaderApp() {
             <div className="flex-1 overflow-y-auto space-y-5 custom-scrollbar pr-2 pb-10">
               {searchQuery.trim() === "" ? (
                 <div className="text-center py-20 text-zinc-500 space-y-4">
-                  <div className="w-16 h-16 rounded-3xl bg-white border border-zinc-200 flex items-center justify-center mx-auto shadow-xs">
+                  <div className="w-16 h-16 rounded-3xl bg-[#0A0A0A] border border-white/10 flex items-center justify-center mx-auto shadow-xs">
                     <Sparkles size={28} className="text-zinc-450 animate-pulse" />
                   </div>
                   <p className="text-[9px] font-bold uppercase tracking-widest max-w-xs mx-auto leading-loose text-zinc-450">
@@ -1021,10 +1049,10 @@ export default function ReaderApp() {
                         setCurrentPage(res.page - 1);
                         setIsSearchOpen(false);
                       }}
-                      className="p-6 bg-white hover:bg-zinc-50/80 border border-zinc-200/80 hover:border-indigo-500/30 rounded-3xl cursor-pointer transition-all space-y-3 font-sans group"
+                      className="p-6 bg-[#0A0A0A] hover:bg-[#1A1A1A]/5/80 border border-white/10/80 hover:border-indigo-500/30 rounded-3xl cursor-pointer transition-all space-y-3 font-sans group"
                     >
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold text-zinc-900 tracking-tight uppercase group-hover:text-indigo-650 transition-colors">
+                        <span className="text-sm font-bold text-gray-100 tracking-tight uppercase group-hover:text-indigo-650 transition-colors">
                           {res.title}
                         </span>
                         <span className="bg-indigo-605 bg-indigo-600 text-white font-mono text-[9px] font-medium px-2.5 py-1 rounded-lg">
@@ -1051,11 +1079,11 @@ export default function ReaderApp() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="fixed inset-y-0 right-0 z-[150] w-full sm:w-[28rem] h-full bg-[#FAF9F6]/95 backdrop-blur-3xl border-l border-zinc-200 shadow-[0_12px_40px_rgba(0,0,0,0.1)] flex flex-col pointer-events-auto"
+            className="fixed inset-y-0 right-0 z-[150] w-full sm:w-[28rem] h-full bg-[#050505]/95 backdrop-blur-3xl border-l border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.1)] flex flex-col pointer-events-auto"
           >
-            <div className="flex justify-between items-center p-8 border-b border-zinc-200/60 shrink-0">
+            <div className="flex justify-between items-center p-8 border-b border-white/10/60 shrink-0">
               <div>
-                <h3 className="font-serif font-medium text-2xl text-zinc-900 tracking-wide flex items-center gap-3">
+                <h3 className="font-serif font-medium text-2xl text-gray-100 tracking-wide flex items-center gap-3">
                   <StickyNote size={22} className="text-amber-600" /> Annotations
                 </h3>
                 <p className="text-[9px] uppercase font-bold tracking-[0.2em] text-zinc-400 mt-2">
@@ -1064,7 +1092,7 @@ export default function ReaderApp() {
               </div>
               <button 
                 onClick={() => setIsNotesOpen(false)}
-                className="w-10 h-10 rounded-full bg-zinc-100/50 hover:bg-zinc-200 flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition-all cursor-pointer"
+                className="w-10 h-10 rounded-full bg-white/10/50 hover:bg-zinc-200 flex items-center justify-center text-zinc-600 hover:text-gray-100 transition-all cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -1083,7 +1111,7 @@ export default function ReaderApp() {
                     key={note.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-5 bg-white border border-zinc-200/80 rounded-2xl shadow-sm relative group"
+                    className="p-5 bg-[#0A0A0A] border border-white/10/80 rounded-2xl shadow-sm relative group"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <span className="bg-amber-100 text-amber-700 font-mono text-[9px] font-bold px-2 py-0.5 rounded">
@@ -1097,7 +1125,7 @@ export default function ReaderApp() {
                       </button>
                     </div>
                     
-                    <div className="border-l-2 border-amber-300 pl-3 py-1 mb-4 italic text-sm text-zinc-700">
+                    <div className="border-l-2 border-amber-300 pl-3 py-1 mb-4 italic text-sm text-zinc-300">
                       "{note.textQuote}"
                     </div>
                     
@@ -1108,7 +1136,7 @@ export default function ReaderApp() {
                         const newNotes = notes.map(n => n.id === note.id ? { ...n, text: e.target.value } : n);
                         setNotes(newNotes);
                       }}
-                      className="w-full text-sm resize-none outline-none text-zinc-800 bg-zinc-50/50 rounded-lg p-3 placeholder:text-zinc-400 focus:bg-white focus:ring-1 ring-amber-500/30 transition-all"
+                      className="w-full text-sm resize-none outline-none text-zinc-200 bg-white/5/50 rounded-lg p-3 placeholder:text-zinc-400 focus:bg-[#0A0A0A] focus:ring-1 ring-amber-500/30 transition-all"
                       rows={3}
                     />
                   </motion.div>
@@ -1120,7 +1148,7 @@ export default function ReaderApp() {
       </AnimatePresence>
 
       <div
-        className="absolute inset-0 z-0 text-zinc-900"
+        className="absolute inset-0 z-0 text-gray-100"
         style={{ backgroundColor: "#FAF9F6" }}
       >
         <AnimatePresence mode="wait">
@@ -1178,7 +1206,7 @@ export default function ReaderApp() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className={`absolute bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-12 lg:right-12 transition-all duration-500 ease-in-out w-[calc(100vw-2rem)] sm:w-[24rem] glass-panel rounded-3xl shadow-[0_24px_50px_rgba(24,24,27,0.1)] border border-zinc-200/80 overflow-hidden flex flex-col shrink-0 pointer-events-auto z-50 ${isMinimized ? "h-[76px]" : "h-auto max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar"}`}
+            className={`absolute bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-12 lg:right-12 transition-all duration-500 ease-in-out w-[calc(100vw-2rem)] sm:w-[24rem] glass-panel rounded-3xl shadow-[0_24px_50px_rgba(24,24,27,0.1)] border border-white/10/80 overflow-hidden flex flex-col shrink-0 pointer-events-auto z-50 ${isMinimized ? "h-[76px]" : "h-auto max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar"}`}
           >
             <div
               className={`bg-gradient-to-br ${activePub.theme} to-transparent opacity-5 transition-all duration-700 absolute inset-0 z-0`}
@@ -1192,7 +1220,7 @@ export default function ReaderApp() {
                   <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em] font-sans leading-none">
                     Now Exploring
                   </div>
-                  <div className="text-sm font-serif font-medium text-zinc-900 truncate">
+                  <div className="text-sm font-serif font-medium text-gray-100 truncate">
                     {activePub.title}
                   </div>
                 </div>
@@ -1204,7 +1232,7 @@ export default function ReaderApp() {
                   )}
                   <button
                     onClick={() => setIsMinimized(!isMinimized)}
-                    className="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-150 p-2 rounded-2xl transition-all focus:outline-none border border-zinc-200 bg-white shadow-xs cursor-pointer"
+                    className="text-zinc-500 hover:text-gray-100 hover:bg-zinc-150 p-2 rounded-2xl transition-all focus:outline-none border border-white/10 bg-[#0A0A0A] shadow-xs cursor-pointer"
                     title={isMinimized ? "Expand" : "Minimize"}
                   >
                     {isMinimized ? (
@@ -1225,9 +1253,31 @@ export default function ReaderApp() {
                   <p className="text-[10px] text-indigo-650 leading-relaxed font-bold uppercase tracking-widest text-center">
                     Universal Podcast Meta-Companion
                   </p>
+                  
+                  <div className="flex justify-center mt-2">
+                    <select
+                      value={selectedVoiceId}
+                      onChange={(e) => setSelectedVoiceId(e.target.value)}
+                      className="bg-[#0A0A0A]/80 border border-indigo-200 text-indigo-900 text-[10px] font-bold p-2 rounded-lg cursor-pointer hover:bg-[#0A0A0A] transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    >
+                      {voicePresets.map((preset) => (
+                        <option key={preset.id} value={preset.id}>
+                          {preset.name} ({preset.accent})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div className="flex justify-center py-2 sm:py-4">
                     <div className="relative flex items-center justify-center h-20 sm:h-28 w-full">
+                       {/* Overlay RadialOrbitalTimeline as background ring */}
+                       <div className="absolute inset-0 z-0 scale-[0.6] opacity-50">
+                          <RadialOrbitalTimeline 
+                            timelineData={timelineData as any} 
+                            onNavigate={(id) => setCurrentPage(id - 1)}
+                          />
+                       </div>
+
                       {isConnected ? (
                         <div className="absolute inset-0 flex items-center justify-center">
                            {/* Gemini AI Voice Output Visualizer in Neon Blue with Glow */}
@@ -1279,7 +1329,7 @@ export default function ReaderApp() {
                   </div>
 
                   <div className="flex flex-col items-center gap-2 sm:gap-3">
-                    <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-full border border-zinc-200 hover:border-zinc-300 transition-colors shadow-xs">
+                    <div className="flex items-center gap-3 px-4 py-2 bg-[#0A0A0A] rounded-full border border-white/10 hover:border-zinc-300 transition-colors shadow-xs">
                       <span
                         className={`h-2 w-2 rounded-full transition-colors duration-500 ${badgeIconColor}`}
                       ></span>
@@ -1289,7 +1339,7 @@ export default function ReaderApp() {
                     </div>
 
                     {isConnected && (
-                      <div className="flex items-center gap-2 mt-1 px-3 py-1 bg-zinc-50 rounded-lg border border-zinc-150 animate-in fade-in duration-300">
+                      <div className="flex items-center gap-2 mt-1 px-3 py-1 bg-white/5 rounded-lg border border-white/5 animate-in fade-in duration-300">
                         {isNarrationEnabled ? (
                           <>
                             <span className="h-1.5 w-1.5 rounded-full bg-[#00f0ff] animate-pulse shadow-[0_0_8px_#00f0ff]"></span>
@@ -1348,16 +1398,16 @@ export default function ReaderApp() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed right-0 top-0 bottom-0 w-full max-w-sm sm:max-w-md bg-white shadow-2xl z-[150] flex flex-col border-l border-zinc-200 pointer-events-auto"
+              className="fixed right-0 top-0 bottom-0 w-full max-w-sm sm:max-w-md bg-[#0A0A0A] shadow-2xl z-[150] flex flex-col border-l border-white/10 pointer-events-auto"
             >
               {/* Header */}
-              <div className="p-5 border-b border-zinc-150 flex items-center justify-between bg-zinc-50">
+              <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/5">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl bg-indigo-50 text-indigo-600`}>
+                  <div className={`p-2 rounded-xl bg-indigo-900/30 text-indigo-400`}>
                     <MessageSquare size={18} />
                   </div>
                   <div>
-                    <h3 className="font-sans font-semibold text-zinc-900 text-sm">Interactive Companion</h3>
+                    <h3 className="font-sans font-semibold text-gray-100 text-sm">Interactive Companion</h3>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       {isOfflineMode ? (
                         <>
@@ -1376,7 +1426,7 @@ export default function ReaderApp() {
                 
                 <button
                   onClick={() => setIsChatOpen(false)}
-                  className="p-2 hover:bg-zinc-200/80 rounded-full text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer"
+                  className="p-2 hover:bg-zinc-200/80 rounded-full text-zinc-400 hover:text-zinc-300 transition-colors cursor-pointer"
                   title="Close panel"
                 >
                   <X size={16} />
@@ -1395,7 +1445,7 @@ export default function ReaderApp() {
                       <div
                         className={`max-w-[85%] rounded-2xl p-4 text-xs font-sans leading-relaxed shadow-sm ${
                           isAi
-                            ? "bg-white border border-zinc-200/80 text-zinc-800"
+                            ? "bg-[#0A0A0A] border border-white/10/80 text-zinc-200"
                             : "bg-indigo-600 text-white font-medium"
                         }`}
                       >
@@ -1403,7 +1453,7 @@ export default function ReaderApp() {
                         
                         {/* Interactive Page Suggestion Shortcuts */}
                         {isAi && msg.pages && msg.pages.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-zinc-100 flex flex-wrap gap-2">
+                          <div className="mt-3 pt-3 border-t border-white/5 flex flex-wrap gap-2">
                             <span className="text-[10px] text-zinc-400 self-center">Page Citations:</span>
                             {msg.pages.map((pNum) => (
                               <button
@@ -1411,7 +1461,7 @@ export default function ReaderApp() {
                                 onClick={() => {
                                   setCurrentPage(pNum - 1);
                                 }}
-                                className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-bold text-[10px] rounded-lg border border-indigo-200/40 transition-colors cursor-pointer focus:outline-none flex items-center gap-1"
+                                className="px-2.5 py-1 bg-indigo-900/30 hover:bg-indigo-100 text-indigo-300 font-mono font-bold text-[10px] rounded-lg border border-indigo-200/40 transition-colors cursor-pointer focus:outline-none flex items-center gap-1"
                               >
                                 <Sparkles size={10} />
                                 <span>Page {pNum}</span>
@@ -1430,9 +1480,9 @@ export default function ReaderApp() {
 
                 {/* Instant Quick Action Interactive Chat Suggestion Chips */}
                 {chatMessages.length <= 1 && activePub && (
-                  <div className="mt-4 p-4.5 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 space-y-3 animate-in slide-in-from-bottom duration-300">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wide text-indigo-700 block flex items-center gap-1.5">
-                      <Sparkles size={12} className="text-indigo-600" /> Suggested Topics inside this issue:
+                  <div className="mt-4 p-4.5 bg-indigo-900/30/50 rounded-2xl border border-indigo-500/20/50 space-y-3 animate-in slide-in-from-bottom duration-300">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wide text-indigo-300 block flex items-center gap-1.5">
+                      <Sparkles size={12} className="text-indigo-400" /> Suggested Topics inside this issue:
                     </span>
                     <div className="flex flex-col gap-2">
                       {(() => {
@@ -1467,7 +1517,7 @@ export default function ReaderApp() {
                               setChatInput(q);
                               sendChatMessage(q);
                             }}
-                            className="w-full text-left px-3.5 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 hover:border-indigo-300 rounded-xl text-[11px] font-medium text-zinc-700 hover:text-indigo-900 transition cursor-pointer shadow-xs whitespace-normal leading-normal"
+                            className="w-full text-left px-3.5 py-2 bg-[#0A0A0A] hover:bg-[#1A1A1A]/5 border border-white/10 hover:border-indigo-300 rounded-xl text-[11px] font-medium text-zinc-300 hover:text-indigo-900 transition cursor-pointer shadow-xs whitespace-normal leading-normal"
                           >
                             "{q}"
                           </button>
@@ -1486,7 +1536,7 @@ export default function ReaderApp() {
                     sendChatMessage(chatInput);
                   }
                 }}
-                className="p-4 border-t border-zinc-150 bg-white flex items-center gap-3 z-50 relative"
+                className="p-4 border-t border-white/5 bg-[#0A0A0A] flex items-center gap-3 z-50 relative"
               >
                 <div className="relative flex-1">
                   <input
@@ -1494,7 +1544,7 @@ export default function ReaderApp() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder={isOfflineMode ? "Scan offline keywords..." : "Ask Gemini about articles, statistics..."}
-                    className="w-full pl-4 pr-10 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-sans text-zinc-800"
+                    className="w-full pl-4 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-sans text-zinc-200"
                   />
                   {isOfflineMode && (
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 flex h-2 w-2">
@@ -1562,6 +1612,11 @@ export default function ReaderApp() {
       <KeyboardShortcutsModal
         isOpen={isKeyboardShortcutsOpen}
         onClose={() => setIsKeyboardShortcutsOpen(false)}
+      />
+
+      <CacheManagerModal
+        isOpen={isCacheManagerOpen}
+        onClose={() => setIsCacheManagerOpen(false)}
       />
 
       <JustGeneratedModal

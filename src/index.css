@@ -16,8 +16,8 @@ html, body, #root {
 
 body {
   font-family: var(--font-sans) !important;
-  background-color: #F7F5F0;
-  color: #1C1B1A;
+  background-color: #050505;
+  color: #F3F4F6;
 }
 
 * {
@@ -110,17 +110,64 @@ body {
   -webkit-user-drag: none;
 }
 
-.ai-orb {
-  width: 12px;
-  height: 12px;
-  background: #00D9FF;
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-  box-shadow: 0 0 8px #00D9FF;
+/* ... existing styles ... */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
-@keyframes pulse {
-  0% { box-shadow: 0 0 4px #00D9FF; }
-  50% { box-shadow: 0 0 12px #00D9FF; }
-  100% { box-shadow: 0 0 4px #00D9FF; }
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@layer utilities {
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-ping {
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin 10s linear infinite;
+  }
+
+  .transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+  }
+
+  .duration-300 {
+    transition-duration: 300ms;
+  }
+
+  .duration-700 {
+    transition-duration: 700ms;
+  }
+
+  .duration-1000 {
+    transition-duration: 1000ms;
+  }
+
+  .backdrop-blur-lg {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .bg-gradient-orbital {
+    background: linear-gradient(to bottom right, #6366f1, #3b82f6, #14b8a6);
+  }
+
+  .shadow-orbital {
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  }
 }

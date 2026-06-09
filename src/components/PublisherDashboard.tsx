@@ -901,24 +901,24 @@ This publication contains live, interactive text layouts, custom speech soundsca
     return (
       <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
-        <div className="bg-white rounded-3xl w-full max-w-2xl relative z-10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          <div className="p-8 border-b border-zinc-100 flex items-center justify-between">
+        <div className="bg-[#0A0A0A] rounded-3xl w-full max-w-2xl relative z-10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-8 border-b border-white/5 flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-black text-zinc-900 leading-tight">Heyzine Sync Pipeline</h2>
+              <h2 className="text-2xl font-black text-gray-100 leading-tight">Heyzine Sync Pipeline</h2>
               <p className="text-zinc-500 font-medium text-sm mt-1">Deploying {mags.length} publications to the distribution cloud.</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer"><X size={20} /></button>
+            <button onClick={onClose} className="p-2 hover:bg-[#1A1A1A]/10 rounded-full transition-colors cursor-pointer"><X size={20} /></button>
           </div>
           <div className="p-8 max-h-[50vh] overflow-y-auto">
              <div className="space-y-4">
                {mags.map(mag => (
-                 <div key={mag.id} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                 <div key={mag.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
                    <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-zinc-100 text-zinc-400">
+                     <div className="w-10 h-10 bg-[#0A0A0A] rounded-xl flex items-center justify-center shadow-sm border border-white/5 text-zinc-400">
                        <FileText size={20} />
                      </div>
                      <div>
-                       <div className="text-sm font-bold text-zinc-900">{mag.title}</div>
+                       <div className="text-sm font-bold text-gray-100">{mag.title}</div>
                        <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-tighter">Status: {batchSyncProgress[mag.id]?.status || 'Ready'}</div>
                      </div>
                    </div>
@@ -926,8 +926,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
                ))}
              </div>
           </div>
-          <div className="p-8 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-3">
-            <button onClick={onClose} className="px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-zinc-500 hover:text-zinc-800 transition-colors cursor-pointer">Close</button>
+          <div className="p-8 bg-white/5 border-t border-white/5 flex justify-end gap-3">
+            <button onClick={onClose} className="px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer">Close</button>
             <button 
               onClick={() => runSyncForMags(mags)} 
               disabled={isBatchSyncing}
@@ -943,9 +943,9 @@ This publication contains live, interactive text layouts, custom speech soundsca
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 flex flex-col md:flex-row font-sans selection:bg-[#00c896]/10 blueprint-grid">
+    <div className="min-h-screen bg-[#050505] text-gray-100 flex flex-col md:flex-row font-sans selection:bg-[#00c896]/10 blueprint-grid">
       {/* Mobile Top Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-[#FAF9F6]/95 backdrop-blur-2xl border-b border-zinc-200/60 sticky top-0 z-[120] w-full shrink-0 shadow-xs">
+      <div className="md:hidden flex items-center justify-between p-4 bg-[#050505]/95 backdrop-blur-2xl border-b border-white/10/60 sticky top-0 z-[120] w-full shrink-0 shadow-xs">
         <div
           className="flex items-center space-x-2 cursor-pointer group"
           onClick={() => navigate("/hub")}
@@ -962,7 +962,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
         </div>
         <button
           onClick={() => setIsMobileDrawerOpen(true)}
-          className="p-2.5 text-zinc-650 hover:text-[#00c896] hover:border-[#00c896]/30 rounded-xl bg-white border border-zinc-200/80 flex items-center justify-center cursor-pointer active:scale-95 transition-all"
+          className="p-2.5 text-zinc-300 hover:text-[#00c896] hover:border-[#00c896]/30 rounded-xl bg-[#0A0A0A] border border-white/10/80 flex items-center justify-center cursor-pointer active:scale-95 transition-all"
           title="Open Menu"
         >
           <Menu size={18} />
@@ -978,7 +978,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
             onClick={() => setIsMobileDrawerOpen(false)}
           />
           {/* Drawer Content */}
-          <div className="fixed inset-y-0 left-0 w-72 bg-[#FAF9F6] border-r border-[#00c896]/10 p-6 flex flex-col h-full z-10">
+          <div className="fixed inset-y-0 left-0 w-72 bg-[#050505] border-r border-[#00c896]/10 p-6 flex flex-col h-full z-10">
             <div className="flex items-center justify-between mb-8 shrink-0">
               <div
                 className="flex items-center space-x-2 cursor-pointer group"
@@ -999,7 +999,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
               </div>
               <button
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="p-2 text-zinc-500 hover:text-zinc-900 rounded-full bg-white border border-zinc-200 flex items-center justify-center cursor-pointer"
+                className="p-2 text-zinc-500 hover:text-gray-100 rounded-full bg-[#0A0A0A] border border-white/10 flex items-center justify-center cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -1024,8 +1024,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     }}
                     className={`flex items-center gap-3.5 w-full text-left px-4 py-3 rounded-xl transition-all duration-200 group border cursor-pointer ${
                       isSelected
-                        ? "bg-[#00c896]/5 text-zinc-900 border-[#00c896]/20 shadow-xs font-semibold"
-                        : "text-zinc-500 hover:text-[#00c896] hover:bg-white/50 border-transparent"
+                        ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 shadow-xs font-semibold"
+                        : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"
                     }`}
                   >
                     <IconComponent
@@ -1038,13 +1038,13 @@ This publication contains live, interactive text layouts, custom speech soundsca
               })}
             </nav>
 
-            <div className="pt-6 border-t border-zinc-200 mt-auto shrink-0">
-              <div className="flex items-center gap-3 text-sm p-3 rounded-xl bg-white border border-zinc-150">
+            <div className="pt-6 border-t border-white/10 mt-auto shrink-0">
+              <div className="flex items-center gap-3 text-sm p-3 rounded-xl bg-[#0A0A0A] border border-white/5">
                 <div className="w-8 h-8 rounded-lg bg-[#00c896] text-[#FAF9F6] flex items-center justify-center font-black text-xs shadow-md">
                   C
                 </div>
                 <div className="min-w-0">
-                  <div className="font-bold text-zinc-900 truncate text-xs">ConvoMag Publisher</div>
+                  <div className="font-bold text-gray-100 truncate text-xs">ConvoMag Publisher</div>
                   <button
                     className="text-[#00c896] text-[10px] uppercase font-bold tracking-wider hover:opacity-80 transition-opacity"
                     onClick={() => {
@@ -1062,7 +1062,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
       )}
 
       {/* Sidebar */}
-      <aside className="w-64 border-r border-[#00c896]/10 bg-white/60 p-6 flex flex-col hidden md:flex sticky top-0 h-screen">
+      <aside className="w-64 border-r border-[#00c896]/10 bg-[#0A0A0A]/60 p-6 flex flex-col hidden md:flex sticky top-0 h-screen">
         <div
           className="flex items-center space-x-2.5 mb-10 cursor-pointer group"
           onClick={() => navigate("/hub")}
@@ -1082,35 +1082,35 @@ This publication contains live, interactive text layouts, custom speech soundsca
         <nav className="space-y-1 flex-1">
           <button
             onClick={() => setActiveTab("magazines")}
-            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "magazines" ? "bg-[#00c896]/5 text-zinc-900 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-white/50 border-transparent"}`}
+            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "magazines" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
           >
             <Upload size={18} className={activeTab === "magazines" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
             <span className="text-sm font-medium">My Publications</span>
           </button>
           <button
             onClick={() => setActiveTab("analytics")}
-            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "analytics" ? "bg-[#00c896]/5 text-zinc-900 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-white/50 border-transparent"}`}
+            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "analytics" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
           >
             <BarChart3 size={18} className={activeTab === "analytics" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
             <span className="text-sm font-medium">Analytics</span>
           </button>
           <button
             onClick={() => setActiveTab("heyzine")}
-            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "heyzine" ? "bg-[#00c896]/5 text-zinc-900 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-white/50 border-transparent"}`}
+            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "heyzine" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
           >
             <BookOpen size={18} className={activeTab === "heyzine" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
             <span className="text-sm font-medium">In-App Flipbook Studio</span>
           </button>
           <button
             onClick={() => setActiveTab("docupipe")}
-            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "docupipe" ? "bg-[#00c896]/5 text-zinc-900 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-white/50 border-transparent"}`}
+            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "docupipe" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
           >
             <FileJson size={18} className={activeTab === "docupipe" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
             <span className="text-sm font-medium">AI Schema Lab</span>
           </button>
           <button
             onClick={() => setActiveTab("bookshelves")}
-            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "bookshelves" ? "bg-[#00c896]/5 text-zinc-900 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-white/50 border-transparent"}`}
+            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "bookshelves" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
           >
             <FileText size={18} className={activeTab === "bookshelves" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
             <span className="text-sm font-medium">Library Shells</span>
@@ -1120,27 +1120,27 @@ This publication contains live, interactive text layouts, custom speech soundsca
           </div>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "settings" ? "bg-[#00c896]/5 text-zinc-900 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-white/50 border-transparent"}`}
+            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "settings" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
           >
             <Settings size={18} className={activeTab === "settings" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
             <span className="text-sm font-medium hidden md:block">Admin Settings</span>
           </button>
           <button
             onClick={() => navigate("/advertiser")}
-            className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer text-zinc-500 hover:text-[#00c896] hover:bg-white/50 border-transparent"
+            className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"
           >
             <BarChart size={18} className="text-zinc-400 group-hover:text-[#00c896]" /> 
             <span className="text-sm font-medium hidden md:block">Advertiser Hub</span>
           </button>
         </nav>
 
-        <div className="pt-6 border-t border-zinc-150 mt-auto">
-          <div className="flex items-center gap-3 text-sm p-2 rounded-xl bg-white border border-zinc-200">
+        <div className="pt-6 border-t border-white/5 mt-auto">
+          <div className="flex items-center gap-3 text-sm p-2 rounded-xl bg-[#0A0A0A] border border-white/10">
             <div className="w-9 h-9 rounded-lg bg-[#00c896] text-[#FAF9F6] flex items-center justify-center font-bold text-sm shadow-xs">
               C
             </div>
             <div className="min-w-0">
-              <div className="font-semibold text-zinc-900 truncate text-xs">ConvoMag Publisher</div>
+              <div className="font-semibold text-gray-100 truncate text-xs">ConvoMag Publisher</div>
               <button
                 className="text-[#00c896] text-[10px] uppercase font-bold tracking-wider hover:opacity-80 transition-opacity cursor-pointer"
                 onClick={() => navigate("/hub")}
@@ -1156,7 +1156,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
       <main className="flex-1 p-6 md:p-10 overflow-y-auto relative">
         {activeTab === "magazines" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex justify-between items-center mb-10 border-b border-zinc-200/60 pb-6">
+            <div className="flex justify-between items-center mb-10 border-b border-white/10/60 pb-6">
               <div>
                 <h1 className="text-3xl font-black tracking-tight text-zinc-950 font-sans mb-1.5">
                   Manage Publications
@@ -1174,7 +1174,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
             {/* Batch Action Bar */}
             {myMagazines.length > 0 && (
-              <div className="mb-8 p-5 rounded-2xl glass-panel border border-zinc-200/60 flex flex-col sm:flex-row justify-between items-center gap-6 shadow-xs">
+              <div className="mb-8 p-5 rounded-2xl glass-panel border border-white/10/60 flex flex-col sm:flex-row justify-between items-center gap-6 shadow-xs">
                 <div className="flex items-center gap-4">
                   <div className="relative flex items-center">
                     <input
@@ -1187,11 +1187,11 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           setSelectedMagIds([]);
                         }
                       }}
-                      className="w-5 h-5 rounded-md border-zinc-300 text-indigo-600 focus:ring-indigo-500 bg-white cursor-pointer"
+                      className="w-5 h-5 rounded-md border-zinc-300 text-indigo-400 focus:ring-indigo-500 bg-[#0A0A0A] cursor-pointer"
                     />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-zinc-900 uppercase tracking-widest leading-none">
+                    <span className="text-xs font-bold text-gray-100 uppercase tracking-widest leading-none">
                       {selectedMagIds.length > 0 
                         ? `${selectedMagIds.length} Items Selected` 
                         : "Bulk Selection"
@@ -1208,7 +1208,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     <>
                       <button
                         onClick={() => setSelectedMagIds([])}
-                        className="flex-1 sm:flex-none text-[11px] uppercase tracking-wider text-zinc-500 hover:text-zinc-900 px-4 py-2 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-all font-bold cursor-pointer"
+                        className="flex-1 sm:flex-none text-[11px] uppercase tracking-wider text-zinc-500 hover:text-gray-100 px-4 py-2 border border-white/10 rounded-lg hover:bg-[#1A1A1A]/5 transition-all font-bold cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -1286,7 +1286,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
                         {/* Interactive overlay */}
                         <div className="absolute inset-0 bg-slate-950/40 flex items-center justify-center opacity-0 group-hover/preview:opacity-100 transition-all duration-300">
-                             <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 scale-90 group-hover/preview:scale-100 transition-all">
+                             <div className="w-14 h-14 rounded-full bg-[#0A0A0A]/20 backdrop-blur-md flex items-center justify-center border border-white/20 scale-90 group-hover/preview:scale-100 transition-all">
                                 <Eye size={24} className="text-white" />
                              </div>
                         </div>
@@ -1304,7 +1304,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                                 setSelectedMagIds([...selectedMagIds, mag.id]);
                               }
                             }}
-                            className="w-5 h-5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-600 bg-slate-900 cursor-pointer transition-all"
+                            className="w-5 h-5 rounded border-slate-700 text-indigo-400 focus:ring-indigo-600 bg-slate-900 cursor-pointer transition-all"
                             title="Select for Batch Sync"
                           />
                         </div>
@@ -1342,7 +1342,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                              e.stopPropagation();
                              openCustomizer(mag);
                            }}
-                           className="text-slate-500 hover:text-white transition-all cursor-pointer bg-white/[0.03] border border-white/5 p-1.5 rounded-lg animate-pulse"
+                           className="text-slate-500 hover:text-white transition-all cursor-pointer bg-[#0A0A0A]/[0.03] border border-white/5 p-1.5 rounded-lg animate-pulse"
                            title="Customize page-turning look & voice settings"
                          >
                             <Settings size={14} />
@@ -1390,7 +1390,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           </div>
 
                           {/* Analytics Status */}
-                          <div className="p-2 rounded-xl flex items-center gap-2 border bg-white/[0.02] text-zinc-300 border-white/5">
+                          <div className="p-2 rounded-xl flex items-center gap-2 border bg-[#0A0A0A]/[0.02] text-zinc-300 border-white/5">
                             <span>📊</span>
                             <span>Analytics Live</span>
                           </div>
@@ -1508,11 +1508,11 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
         {activeTab === "analytics" && (
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-zinc-950 font-sans mb-8 border-b border-zinc-200/60 pb-6">
+            <h1 className="text-3xl font-black tracking-tight text-zinc-950 font-sans mb-8 border-b border-white/10/60 pb-6">
               Performance Analytics
             </h1>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white border border-zinc-200/80 p-6 rounded-2xl shadow-xs">
+              <div className="bg-[#0A0A0A] border border-white/10/80 p-6 rounded-2xl shadow-xs">
                 <span className="text-xs uppercase tracking-wider text-zinc-500 font-semibold">
                   Total Dwell Time
                 </span>
@@ -1523,7 +1523,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                   Across all publishing devices
                 </span>
               </div>
-              <div className="bg-white border border-zinc-200/80 p-6 rounded-2xl shadow-xs">
+              <div className="bg-[#0A0A0A] border border-white/10/80 p-6 rounded-2xl shadow-xs">
                 <span className="text-xs uppercase tracking-wider text-zinc-500 font-semibold">
                   Average Session Length
                 </span>
@@ -1534,7 +1534,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                   Up 14% vs traditional PDFs
                 </span>
               </div>
-              <div className="bg-white border border-zinc-200/80 p-6 rounded-2xl shadow-xs">
+              <div className="bg-[#0A0A0A] border border-white/10/80 p-6 rounded-2xl shadow-xs">
                 <span className="text-xs uppercase tracking-wider text-zinc-500 font-semibold">
                   Advertiser CTR
                 </span>
@@ -1547,9 +1547,9 @@ This publication contains live, interactive text layouts, custom speech soundsca
               </div>
             </div>
 
-            <div className="bg-white border border-zinc-200 p-8 rounded-2xl text-center shadow-xs">
+            <div className="bg-[#0A0A0A] border border-white/10 p-8 rounded-2xl text-center shadow-xs">
               <BarChart3 size={32} className="text-zinc-400 mx-auto mb-4" />
-              <h3 className="font-sans font-bold text-lg text-zinc-900 mb-1">Conversion funnel metrics</h3>
+              <h3 className="font-sans font-bold text-lg text-gray-100 mb-1">Conversion funnel metrics</h3>
               <p className="text-sm text-zinc-500 max-w-md mx-auto leading-relaxed">
                 Analytics data aggregates incrementally as readers click back,
                 trigger voice assistant loops, or tap to play audio narrations
@@ -1561,7 +1561,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
         {activeTab === "bookshelves" && (
           <div>
-             <h1 className="text-3xl font-black tracking-tight text-zinc-950 font-sans mb-6 border-b border-zinc-200/60 pb-6">Bookshelves</h1>
+             <h1 className="text-3xl font-black tracking-tight text-zinc-950 font-sans mb-6 border-b border-white/10/60 pb-6">Bookshelves</h1>
              <button onClick={async () => {
                  const title = prompt("Enter bookshelf title:");
                  if (title) {
@@ -1575,8 +1575,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
              }} className="px-5 py-2.5 bg-[#00c896] hover:bg-[#00c896]/90 text-white rounded-xl text-sm font-medium shadow-sm transition-all cursor-pointer mb-6">Create Bookshelf</button>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {myBookshelves.map((shelf) => (
-                  <div key={shelf.id} className="p-6 bg-white rounded-2xl border border-zinc-200 shadow-xs hover:shadow-md transition-all">
-                    <h3 className="font-sans font-bold text-zinc-900 text-lg mb-2">{shelf.title}</h3>
+                  <div key={shelf.id} className="p-6 bg-[#0A0A0A] rounded-2xl border border-white/10 shadow-xs hover:shadow-md transition-all">
+                    <h3 className="font-sans font-bold text-gray-100 text-lg mb-2">{shelf.title}</h3>
                     <p className="text-sm text-zinc-500">{shelf.magazines.length} publications</p>
                   </div>
                 ))}
@@ -1595,8 +1595,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
               </p>
             </div>
 
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4 shadow-xs">
-              <h3 className="font-sans font-bold text-lg text-zinc-900 border-b border-zinc-150 pb-2">
+            <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 space-y-4 shadow-xs">
+              <h3 className="font-sans font-bold text-lg text-gray-100 border-b border-white/5 pb-2">
                 Profile & Branding
               </h3>
               <div>
@@ -1606,7 +1606,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                 <input
                   type="text"
                   defaultValue="TechNews Media"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-2.5 text-zinc-500 text-sm cursor-not-allowed"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-zinc-500 text-sm cursor-not-allowed"
                   disabled
                 />
               </div>
@@ -1617,15 +1617,15 @@ This publication contains live, interactive text layouts, custom speech soundsca
                 <input
                   type="text"
                   defaultValue="technews"
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-2.5 text-zinc-500 text-sm cursor-not-allowed"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-zinc-500 text-sm cursor-not-allowed"
                   disabled
                 />
               </div>
             </div>
 
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4 shadow-xs">
-              <div className="flex items-center justify-between border-b border-zinc-150 pb-2">
-                <h3 className="font-sans font-bold text-lg text-zinc-900">
+            <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <h3 className="font-sans font-bold text-lg text-gray-100">
                   ConvoMag Native AI Parser
                 </h3>
                 <span className="bg-[#00c896]/10 text-[#00c896] text-xs font-black px-2.5 py-1 rounded-full flex items-center gap-1.5 font-mono">
@@ -1633,11 +1633,11 @@ This publication contains live, interactive text layouts, custom speech soundsca
                   GEMINI LOCAL ENGINE
                 </span>
               </div>
-              <p className="text-zinc-650 text-xs leading-relaxed font-light">
+              <p className="text-zinc-300 text-xs leading-relaxed font-light">
                 ConvoMag AI uses an <strong className="font-semibold text-zinc-850">In-App Native AI Extraction Engine</strong> powered by Gemini. PDF uploads are analyzed completely locally, maintaining absolute data privacy. It extracts high-fidelity text structure, tables of contents, active brand sponsors, and in-app promotions with zero dependency on external third-party tools like Docupipe.
               </p>
               <div className="p-4 bg-emerald-500/5 rounded-xl border border-[#00c896]/10">
-                <p className="text-xs text-zinc-700 leading-relaxed font-semibold flex items-center gap-2">
+                <p className="text-xs text-zinc-300 leading-relaxed font-semibold flex items-center gap-2">
                   <span className="text-[#00c896] text-sm">✓</span> 
                   Native digital schema structure extraction is active and operational by default.
                 </p>
@@ -1727,7 +1727,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                   </div>
                   <div>
                     <span className="block text-[10px] uppercase tracking-wider text-zinc-500 font-bold font-mono">Active Publications</span>
-                    <span className="text-xl font-black font-sans text-zinc-100">{myMagazines.length} Magazines</span>
+                    <span className="text-xl font-black font-sans text-zinc-800">{myMagazines.length} Magazines</span>
                   </div>
                 </div>
               </div>
@@ -1735,22 +1735,22 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
             {/* Main Magazines Grid */}
             <div className="space-y-6">
-              <div className="border-b border-zinc-200 pb-4 flex justify-between items-end">
-                <h2 className="text-xl font-sans text-zinc-900 font-bold flex items-center gap-2">
+              <div className="border-b border-white/10 pb-4 flex justify-between items-end">
+                <h2 className="text-xl font-sans text-gray-100 font-bold flex items-center gap-2">
                   <FileText size={20} className="text-[#00c896]" /> Local Studio Flipbooks ({myMagazines.length})
                 </h2>
                 <button
                   onClick={() => setActiveTab("magazines")}
-                  className="text-xs text-indigo-600 hover:underline flex items-center gap-1 cursor-pointer font-bold uppercase tracking-wider text-[10px]"
+                  className="text-xs text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer font-bold uppercase tracking-wider text-[10px]"
                 >
                   + Upload New PDF
                 </button>
               </div>
 
               {myMagazines.length === 0 ? (
-                <div className="border border-dashed border-zinc-250 rounded-2xl p-16 text-center bg-white shadow-xs">
+                <div className="border border-dashed border-zinc-250 rounded-2xl p-16 text-center bg-[#0A0A0A] shadow-xs">
                   <BookOpen size={48} className="text-zinc-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-sans font-bold text-zinc-900 mb-1">
+                  <h3 className="text-xl font-sans font-bold text-gray-100 mb-1">
                     No publications loaded
                   </h3>
                   <p className="text-sm text-zinc-500 max-w-sm mx-auto mb-6 font-light leading-relaxed">
@@ -1781,10 +1781,10 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     return (
                       <div
                         key={mag.id}
-                        className="bg-white border border-zinc-250 rounded-2xl overflow-hidden hover:border-zinc-350 transition-all flex flex-col hover:shadow-lg group"
+                        className="bg-[#0A0A0A] border border-zinc-250 rounded-2xl overflow-hidden hover:border-zinc-350 transition-all flex flex-col hover:shadow-lg group"
                       >
                         {/* Cover picture bar */}
-                        <div className="h-48 relative bg-zinc-100 flex items-center justify-center overflow-hidden">
+                        <div className="h-48 relative bg-white/10 flex items-center justify-center overflow-hidden">
                           {mag.coverUrl ? (
                             <img
                               src={mag.coverUrl}
@@ -1818,15 +1818,15 @@ This publication contains live, interactive text layouts, custom speech soundsca
                         {/* Middle Settings Specs list */}
                         <div className="p-5 flex flex-col flex-1 space-y-4">
                           <div className="grid grid-cols-2 gap-2 text-center text-xs">
-                            <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-200">
+                            <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
                               <span className="block text-[8px] uppercase tracking-wider text-zinc-400 font-bold font-mono">
                                 Backdrop Skin
                               </span>
-                              <span className="font-bold text-zinc-800 text-[11px] truncate block mt-0.5">
+                              <span className="font-bold text-zinc-200 text-[11px] truncate block mt-0.5">
                                 {themeLabels[mag.themeBackground] || "Minimal Slate"}
                               </span>
                             </div>
-                            <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-200">
+                            <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
                               <span className="block text-[8px] uppercase tracking-wider text-zinc-400 font-bold font-mono">
                                 AI Persona
                               </span>
@@ -1837,28 +1837,28 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           </div>
 
                           {/* Specific settings items */}
-                          <div className="bg-[#FAF9F6] p-3.5 rounded-xl border border-zinc-200/60 space-y-2 text-xs">
+                          <div className="bg-[#050505] p-3.5 rounded-xl border border-white/10/60 space-y-2 text-xs">
                             <div className="flex justify-between items-center text-[10px] text-zinc-500 uppercase tracking-widest border-b border-zinc-250 pb-2 font-mono font-bold mb-1">
                               <span>3D Physics parameters</span>
                               <span className="text-emerald-500 font-semibold uppercase tracking-wider">
                                 Direct SQLite State
                               </span>
                             </div>
-                            <div className="flex justify-between items-center text-zinc-700">
+                            <div className="flex justify-between items-center text-zinc-300">
                               <span className="font-medium">Leather Hardcover:</span>
                               <span className={`font-mono font-semibold ${hardcoverActive ? "text-indigo-650" : "text-zinc-400"}`}>
                                 {hardcoverActive ? "RIGID SPINE" : "PAPERBACK"}
                               </span>
                             </div>
-                            <div className="flex justify-between items-center text-zinc-700">
+                            <div className="flex justify-between items-center text-zinc-300">
                               <span className="font-medium">Paper Rustling Audio:</span>
                               <span className={`font-mono font-semibold ${soundActive ? "text-emerald-500" : "text-zinc-400"}`}>
                                 {soundActive ? "3D SYNTH ACTIVE" : "MUTED"}
                               </span>
                             </div>
-                            <div className="flex justify-between items-center text-zinc-700">
+                            <div className="flex justify-between items-center text-zinc-300">
                               <span className="font-medium">Animation Speed:</span>
-                              <span className="font-mono font-bold text-zinc-800">
+                              <span className="font-mono font-bold text-zinc-200">
                                 {mag.pageTransitionsSpeed !== undefined ? Number(mag.pageTransitionsSpeed) : 800} ms
                               </span>
                             </div>
@@ -1871,7 +1871,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                                 e.stopPropagation();
                                 openCustomizer(mag);
                               }}
-                              className="bg-zinc-150 hover:bg-zinc-200 text-zinc-800 border border-zinc-250/80 rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center justify-center gap-1.5"
+                              className="bg-zinc-150 hover:bg-zinc-200 text-zinc-200 border border-zinc-250/80 rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center justify-center gap-1.5"
                             >
                               <Settings size={13} className="text-zinc-600" />
                               Layout Suite
@@ -1910,13 +1910,13 @@ This publication contains live, interactive text layouts, custom speech soundsca
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Form panel */}
               <div className="lg:col-span-5 space-y-6">
-                <div className="bg-white border border-zinc-250 p-6 rounded-3xl shadow-xs space-y-6">
+                <div className="bg-[#0A0A0A] border border-zinc-250 p-6 rounded-3xl shadow-xs space-y-6">
                   <div>
-                    <h3 className="font-sans font-bold text-lg text-zinc-900 mb-2">
+                    <h3 className="font-sans font-bold text-lg text-gray-100 mb-2">
                       1. Identify Document Source
                     </h3>
                     
-                    <div className="flex bg-[#FAF9F6] p-1 rounded-xl border border-zinc-200/80 mb-4 font-sans">
+                    <div className="flex bg-[#050505] p-1 rounded-xl border border-white/10/80 mb-4 font-sans">
                       <button
                         type="button"
                         onClick={() => {
@@ -1925,14 +1925,14 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           setExtractionFileBase64("");
                           setExtractionFileName("");
                         }}
-                        className={`flex-1 py-2 text-[10px] uppercase tracking-widest font-black rounded-lg transition-all cursor-pointer ${extractionDocSource === "magazine" ? "bg-white text-zinc-900 border border-zinc-250 shadow-sm" : "text-zinc-400 hover:text-zinc-750"}`}
+                        className={`flex-1 py-2 text-[10px] uppercase tracking-widest font-black rounded-lg transition-all cursor-pointer ${extractionDocSource === "magazine" ? "bg-[#0A0A0A] text-gray-100 border border-zinc-250 shadow-sm" : "text-zinc-400 hover:text-zinc-750"}`}
                       >
                         ConvoMag Publication
                       </button>
                       <button
                         type="button"
                         onClick={() => setExtractionDocSource("upload")}
-                        className={`flex-1 py-2 text-[10px] uppercase tracking-widest font-black rounded-lg transition-all cursor-pointer ${extractionDocSource === "upload" ? "bg-white text-zinc-900 border border-zinc-250 shadow-sm" : "text-zinc-400 hover:text-zinc-750"}`}
+                        className={`flex-1 py-2 text-[10px] uppercase tracking-widest font-black rounded-lg transition-all cursor-pointer ${extractionDocSource === "upload" ? "bg-[#0A0A0A] text-gray-100 border border-zinc-250 shadow-sm" : "text-zinc-400 hover:text-zinc-750"}`}
                       >
                         Upload Custom PDF
                       </button>
@@ -1946,7 +1946,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                         <select
                           value={extractionMagId}
                           onChange={(e) => setExtractionMagId(e.target.value)}
-                          className="w-full bg-white border border-zinc-200/80 rounded-xl px-4 py-3 text-sm font-semibold text-zinc-800 focus:outline-none focus:border-[#00c896] transition-all font-sans"
+                          className="w-full bg-[#0A0A0A] border border-white/10/80 rounded-xl px-4 py-3 text-sm font-semibold text-zinc-200 focus:outline-none focus:border-[#00c896] transition-all font-sans"
                         >
                           <option value="">-- Choose Publication --</option>
                           {myMagazines.map((m) => (
@@ -1962,7 +1962,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           Upload Custom File (PDF)
                         </label>
                         
-                        <div className="relative border-2 border-dashed border-zinc-250 hover:border-[#00c896]/60 rounded-2xl p-6 text-center hover:bg-[#FAF9F6] transition-all group font-sans">
+                        <div className="relative border-2 border-dashed border-zinc-250 hover:border-[#00c896]/60 rounded-2xl p-6 text-center hover:bg-[#050505] transition-all group font-sans">
                           <input
                             type="file"
                             accept="application/pdf"
@@ -1972,12 +1972,12 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           <Upload size={28} className="mx-auto text-zinc-400 group-hover:text-[#00c896] mb-2 transition-colors" />
                           {extractionFileName ? (
                             <div>
-                              <span className="block text-sm font-bold text-zinc-800 truncate px-2">{extractionFileName}</span>
+                              <span className="block text-sm font-bold text-zinc-200 truncate px-2">{extractionFileName}</span>
                               <span className="text-[10px] text-zinc-450 uppercase font-mono mt-1 block">Click to replace file</span>
                             </div>
                           ) : (
                             <div>
-                              <span className="block text-xs font-bold text-zinc-700">Drag & Drop or Click to browse</span>
+                              <span className="block text-xs font-bold text-zinc-300">Drag & Drop or Click to browse</span>
                               <span className="text-[10px] text-zinc-400 block mt-1 font-light">PDF format (Max 40MB)</span>
                             </div>
                           )}
@@ -1986,8 +1986,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     )}
                   </div>
 
-                  <div className="border-t border-zinc-150 pt-5">
-                    <h3 className="font-sans font-bold text-lg text-zinc-900 mb-2">
+                  <div className="border-t border-white/5 pt-5">
+                    <h3 className="font-sans font-bold text-lg text-gray-100 mb-2">
                       2. Choose Schema Presets
                     </h3>
                     <p className="text-xs text-zinc-500 mb-4 font-sans font-light">
@@ -1998,47 +1998,47 @@ This publication contains live, interactive text layouts, custom speech soundsca
                       <button
                         type="button"
                         onClick={() => setSchemaPreset("schema_toc_01")}
-                        className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-start ${schemaPreset === "schema_toc_01" ? "border-[#00c896] bg-[#00c896]/5 shadow-xs" : "border-zinc-200 hover:border-zinc-300"}`}
+                        className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-start ${schemaPreset === "schema_toc_01" ? "border-[#00c896] bg-[#00c896]/5 shadow-xs" : "border-white/10 hover:border-zinc-300"}`}
                       >
                         <div>
                           <span className="block font-bold text-xs text-zinc-850 text-left">Magazine Table of Contents</span>
                           <span className="block text-[10px] text-zinc-500 font-light mt-0.5 text-left">Extracts major headings, authors, pages, and key summaries.</span>
                         </div>
-                        <span className="text-[9px] font-mono text-zinc-400 bg-zinc-100 rounded px-1.5 font-bold shrink-0">schema_toc_01</span>
+                        <span className="text-[9px] font-mono text-zinc-400 bg-white/10 rounded px-1.5 font-bold shrink-0">schema_toc_01</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setSchemaPreset("schema_ads_02")}
-                        className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-start ${schemaPreset === "schema_ads_02" ? "border-[#00c896] bg-[#00c896]/5 shadow-xs" : "border-zinc-200 hover:border-zinc-300"}`}
+                        className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-start ${schemaPreset === "schema_ads_02" ? "border-[#00c896] bg-[#00c896]/5 shadow-xs" : "border-white/10 hover:border-zinc-300"}`}
                       >
                         <div>
                           <span className="block font-bold text-xs text-zinc-850 text-left">Ad & Coupon Tracker</span>
                           <span className="block text-[10px] text-zinc-500 font-light mt-0.5 text-left">Lists active brand promos, codes, page layout spreads, and campaigns.</span>
                         </div>
-                        <span className="text-[9px] font-mono text-zinc-400 bg-zinc-100 rounded px-1.5 font-bold shrink-0">schema_ads_02</span>
+                        <span className="text-[9px] font-mono text-zinc-400 bg-white/10 rounded px-1.5 font-bold shrink-0">schema_ads_02</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setSchemaPreset("schema_mediakit_03")}
-                        className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-start ${schemaPreset === "schema_mediakit_03" ? "border-[#00c896] bg-[#00c896]/5 shadow-xs" : "border-zinc-200 hover:border-zinc-300"}`}
+                        className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-start ${schemaPreset === "schema_mediakit_03" ? "border-[#00c896] bg-[#00c896]/5 shadow-xs" : "border-white/10 hover:border-zinc-300"}`}
                       >
                         <div>
                           <span className="block font-bold text-xs text-zinc-850 text-left">Media Kit / Lease Agreements</span>
                           <span className="block text-[10px] text-zinc-500 font-light mt-0.5 text-left">Automates extraction of dates, terms, and custom lease variables.</span>
                         </div>
-                        <span className="text-[9px] font-mono text-zinc-400 bg-zinc-100 rounded px-1.5 font-bold shrink-0">schema_mediakit_03</span>
+                        <span className="text-[9px] font-mono text-zinc-400 bg-white/10 rounded px-1.5 font-bold shrink-0">schema_mediakit_03</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setSchemaPreset("custom")}
-                        className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer ${schemaPreset === "custom" ? "border-[#00c896] bg-[#00c896]/5 shadow-xs" : "border-zinc-200 hover:border-zinc-300"}`}
+                        className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer ${schemaPreset === "custom" ? "border-[#00c896] bg-[#00c896]/5 shadow-xs" : "border-white/10 hover:border-zinc-300"}`}
                       >
                         <div className="flex justify-between items-start mb-2">
                           <span className="block font-bold text-xs text-zinc-850 text-left">Custom Schema Target ID</span>
-                          <span className="text-[9px] font-mono text-zinc-400 bg-indigo-50 text-indigo-500 rounded px-1.5 font-bold uppercase shrink-0">Dynamic</span>
+                          <span className="text-[9px] font-mono text-zinc-400 bg-indigo-900/30 text-indigo-500 rounded px-1.5 font-bold uppercase shrink-0">Dynamic</span>
                         </div>
                         {schemaPreset === "custom" && (
                           <input
@@ -2046,7 +2046,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                             value={customSchemaId}
                             onChange={(e) => setCustomSchemaId(e.target.value)}
                             placeholder="Enter schema ID e.g. parent_schema_9a..."
-                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#00c896]"
+                            className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#00c896]"
                             onClick={(e) => e.stopPropagation()}
                           />
                         )}
@@ -2076,14 +2076,14 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
                 {/* Sub-panel showing active progress tracker */}
                 {selectedExtraction && (selectedExtraction.status !== "completed" && selectedExtraction.status !== "failed") && (
-                  <div className="bg-[#FAF9F6] border border-zinc-220 p-6 rounded-3xl space-y-4 text-left">
-                    <h4 className="font-bold text-sm text-zinc-800 flex items-center gap-2 font-sans">
+                  <div className="bg-[#050505] border border-zinc-220 p-6 rounded-3xl space-y-4 text-left">
+                    <h4 className="font-bold text-sm text-zinc-200 flex items-center gap-2 font-sans">
                       <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping inline-block shrink-0" />
                       Live Extraction Queue Progress
                     </h4>
                     
                     <div className="space-y-4 pt-1 font-mono text-[11px] text-zinc-600">
-                      <div className="flex items-center justify-between pb-1 border-b border-zinc-200/60 text-xs font-semibold font-sans">
+                      <div className="flex items-center justify-between pb-1 border-b border-white/10/60 text-xs font-semibold font-sans">
                         <span>Extraction ID:</span>
                         <span className="font-mono text-[11px] text-zinc-500">{selectedExtraction.id}</span>
                       </div>
@@ -2137,8 +2137,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
               {/* Data & Results display */}
               <div className="lg:col-span-7 space-y-6">
                 {selectedExtraction ? (
-                  <div className="bg-white border border-zinc-250 rounded-3xl p-6 shadow-xs space-y-6 animate-in fade-in flex flex-col text-left">
-                    <div className="flex justify-between items-start border-b border-zinc-150 pb-4 flex-wrap gap-2">
+                  <div className="bg-[#0A0A0A] border border-zinc-250 rounded-3xl p-6 shadow-xs space-y-6 animate-in fade-in flex flex-col text-left">
+                    <div className="flex justify-between items-start border-b border-white/5 pb-4 flex-wrap gap-2">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-[#00c896] bg-[#00c896]/10 px-2 py-0.5 rounded font-bold font-mono tracking-wide">
@@ -2148,7 +2148,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                             {new Date(selectedExtraction.createdAt).toLocaleString()}
                           </span>
                         </div>
-                        <h2 className="text-xl font-black text-zinc-900 mt-1 font-sans truncate max-w-md">
+                        <h2 className="text-xl font-black text-gray-100 mt-1 font-sans truncate max-w-md">
                           {selectedExtraction.fileName}
                         </h2>
                         <p className="text-zinc-500 text-xs font-medium font-sans mt-0.5">
@@ -2159,7 +2159,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                       <div className="flex gap-2 shrink-0">
                         <button
                           onClick={() => setSelectedExtraction(null)}
-                          className="bg-zinc-105 hover:bg-zinc-200 text-zinc-700 font-bold text-xs px-4 py-2 rounded-xl transition-all border border-zinc-200 cursor-pointer text-center"
+                          className="bg-zinc-105 hover:bg-zinc-200 text-zinc-300 font-bold text-xs px-4 py-2 rounded-xl transition-all border border-white/10 cursor-pointer text-center"
                         >
                           Show History
                         </button>
@@ -2168,8 +2168,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
                     {selectedExtraction.status === "completed" && (
                       <div className="space-y-6">
-                        <div className="flex bg-zinc-50 p-1 rounded-xl border border-zinc-200 font-sans">
-                          <div className="flex-1 text-center py-2 text-[11px] font-bold text-zinc-800 bg-white border border-zinc-200 shadow-2xs rounded-lg">
+                        <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 font-sans">
+                          <div className="flex-1 text-center py-2 text-[11px] font-bold text-zinc-200 bg-[#0A0A0A] border border-white/10 shadow-2xs rounded-lg">
                             📊 Schema Fields List
                           </div>
                           
@@ -2190,7 +2190,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           <a
                             href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(selectedExtraction.resultJson, null, 2))}`}
                             download={`${selectedExtraction.fileName.replace('.pdf', '')}_extracted_schema.json`}
-                            className="flex-1 text-center py-2 text-[11px] font-bold text-zinc-450 hover:text-zinc-800 rounded-lg transition-colors cursor-pointer"
+                            className="flex-1 text-center py-2 text-[11px] font-bold text-zinc-450 hover:text-zinc-200 rounded-lg transition-colors cursor-pointer"
                           >
                             💾 Download JSON
                           </a>
@@ -2203,14 +2203,14 @@ This publication contains live, interactive text layouts, custom speech soundsca
                               {Object.entries(selectedExtraction.resultJson).map(([key, val]) => {
                                 if (typeof val === 'object' && val !== null) {
                                   return (
-                                    <div key={key} className="bg-zinc-50/50 border border-zinc-150 rounded-2xl p-4 shadow-3xs space-y-2">
-                                      <span className="text-[10px] font-mono font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block">
+                                    <div key={key} className="bg-white/5/50 border border-white/5 rounded-2xl p-4 shadow-3xs space-y-2">
+                                      <span className="text-[10px] font-mono font-black text-emerald-600 bg-emerald-900/30 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block">
                                         {key}
                                       </span>
                                       
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                                         {Object.entries(val).map(([subK, subV]) => (
-                                          <div key={subK} className="bg-white border border-zinc-150 p-3 rounded-xl shadow-3xs flex flex-col justify-center">
+                                          <div key={subK} className="bg-[#0A0A0A] border border-white/5 p-3 rounded-xl shadow-3xs flex flex-col justify-center">
                                             <span className="block font-mono font-bold text-zinc-400 text-[9px] uppercase tracking-wide truncate">
                                               {subK}
                                             </span>
@@ -2228,7 +2228,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                                   );
                                 } else {
                                   return (
-                                    <div key={key} className="flex justify-between items-center bg-zinc-50/50 border border-zinc-150 p-4 rounded-2xl shadow-3xs text-sm">
+                                    <div key={key} className="flex justify-between items-center bg-white/5/50 border border-white/5 p-4 rounded-2xl shadow-3xs text-sm">
                                       <span className="font-mono font-black text-[#00c896] bg-[#00c896]/5 px-2.5 py-1 rounded-md uppercase tracking-wide">
                                         {key}
                                       </span>
@@ -2257,7 +2257,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                             </details>
                           </div>
                         ) : (
-                          <div className="p-6 bg-zinc-50 border border-zinc-200 text-center rounded-2xl text-zinc-400 font-sans">
+                          <div className="p-6 bg-white/5 border border-white/10 text-center rounded-2xl text-zinc-400 font-sans">
                             No structured properties returned by standardizer schema templates.
                           </div>
                         )}
@@ -2288,7 +2288,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                       <div className="p-12 text-center space-y-4 font-sans">
                         <Loader2 className="animate-spin text-[#00c896] mx-auto" size={36} />
                         <div className="text-zinc-600 text-sm font-medium">
-                          Docupipe/Native background queue processing is currently <strong className="font-bold text-zinc-800 uppercase animate-pulse">{selectedExtraction.status.replace('_', ' ')}</strong>...
+                          Docupipe/Native background queue processing is currently <strong className="font-bold text-zinc-200 uppercase animate-pulse">{selectedExtraction.status.replace('_', ' ')}</strong>...
                         </div>
                         <p className="text-zinc-400 text-xs font-light max-w-xs mx-auto leading-relaxed">
                           We are processing the document using the Gemini Native extraction models in real-time. This can take between 15-45 seconds depending on document length. Please stay on this tab.
@@ -2297,8 +2297,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     )}
                   </div>
                 ) : (
-                  <div className="bg-white border border-zinc-250 rounded-3xl p-6 shadow-xs space-y-6 text-left">
-                    <div className="border-b border-zinc-150 pb-4">
+                  <div className="bg-[#0A0A0A] border border-zinc-250 rounded-3xl p-6 shadow-xs space-y-6 text-left">
+                    <div className="border-b border-white/5 pb-4">
                       <h3 className="font-sans font-black text-lg text-zinc-950">
                         History & Extracted Repositories
                       </h3>
@@ -2308,9 +2308,9 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     </div>
 
                     {extractions.length === 0 ? (
-                      <div className="p-12 text-center space-y-3 border border-dashed border-zinc-200 rounded-2xl bg-[#FAF9F6] font-sans">
+                      <div className="p-12 text-center space-y-3 border border-dashed border-white/10 rounded-2xl bg-[#050505] font-sans">
                         <FileJson className="mx-auto text-zinc-350" size={32} />
-                        <h4 className="font-bold text-sm text-zinc-700">No Extractions Found</h4>
+                        <h4 className="font-bold text-sm text-zinc-300">No Extractions Found</h4>
                         <p className="text-zinc-400 text-xs font-light max-w-xs mx-auto">
                           Specify a document source and a target schema preset on the left side to run your very first dynamic DocuPipe extraction analyzer.
                         </p>
@@ -2321,26 +2321,26 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           <div
                             key={ext.id}
                             onClick={() => setSelectedExtraction(ext)}
-                            className="bg-white border border-zinc-200 hover:border-[#00c896]/60 rounded-2xl p-4 shadow-3xs flex items-center justify-between cursor-pointer transition-all hover:scale-101 select-none text-left"
+                            className="bg-[#0A0A0A] border border-white/10 hover:border-[#00c896]/60 rounded-2xl p-4 shadow-3xs flex items-center justify-between cursor-pointer transition-all hover:scale-101 select-none text-left"
                           >
                             <div className="min-w-0 flex-1 space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-mono text-[9px] font-bold text-zinc-400 bg-zinc-50 border border-zinc-150/80 rounded px-1.5 py-0.5">
+                                <span className="font-mono text-[9px] font-bold text-zinc-400 bg-white/5 border border-white/5/80 rounded px-1.5 py-0.5">
                                   {ext.id}
                                 </span>
                                 <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full font-mono font-black ${
                                   ext.status === 'completed' ? 'bg-[#00c896]/10 text-[#00c896]' :
                                   ext.status === 'failed' ? 'bg-red-50 text-red-650' :
-                                  'bg-amber-50 text-amber-655 animate-pulse'
+                                  'bg-amber-900/30 text-amber-655 animate-pulse'
                                 }`}>
                                   {ext.status.replace('_', ' ')}
                                 </span>
                               </div>
-                              <h4 className="text-sm font-bold text-zinc-900 truncate font-sans">
+                              <h4 className="text-sm font-bold text-gray-100 truncate font-sans">
                                 {ext.fileName}
                               </h4>
                               <p className="text-zinc-500 text-[11px] leading-none font-sans font-medium">
-                                Schema: <strong className="text-zinc-700 font-bold">{ext.schemaName}</strong>
+                                Schema: <strong className="text-zinc-300 font-bold">{ext.schemaName}</strong>
                               </p>
                             </div>
 
@@ -2382,14 +2382,14 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-zinc-900/40 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white border border-zinc-200/80 rounded-[2.5rem] w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] shadow-[0_24px_50px_rgba(24,24,27,0.12)] overflow-hidden flex flex-col scale-100">
-            <div className="flex justify-between items-center p-6 sm:p-8 bg-[#FAF9F6] border-b border-zinc-150/80">
+          <div className="bg-[#0A0A0A] border border-white/10/80 rounded-[2.5rem] w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] shadow-[0_24px_50px_rgba(24,24,27,0.12)] overflow-hidden flex flex-col scale-100">
+            <div className="flex justify-between items-center p-6 sm:p-8 bg-[#050505] border-b border-white/5/80">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-900/30 flex items-center justify-center border border-indigo-500/20">
                    <Upload className="text-indigo-650" size={24} />
                 </div>
                 <div>
-                  <h3 className="font-black text-xl text-zinc-900 tracking-tight">
+                  <h3 className="font-black text-xl text-gray-100 tracking-tight">
                     {uploadStep === "select" ? "Global Sync Editor" : "Publication Identity"}
                   </h3>
                   <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest">Step {uploadStep === "select" ? "1" : "2"} of 2</p>
@@ -2398,24 +2398,24 @@ This publication contains live, interactive text layouts, custom speech soundsca
               {uploadStep !== "processing" && (
                 <button
                   onClick={() => setIsUploadModalOpen(false)}
-                  className="text-zinc-400 hover:text-zinc-805 p-2 hover:bg-zinc-100 rounded-xl transition-all cursor-pointer"
+                  className="text-zinc-400 hover:text-zinc-805 p-2 hover:bg-[#1A1A1A]/10 rounded-xl transition-all cursor-pointer"
                 >
                   <X size={24} />
                 </button>
               )}
             </div>
 
-            <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar bg-white">
+            <div className="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar bg-[#0A0A0A]">
               {uploadStep === "select" && (
                 <div className="space-y-6">
-                  <div className="flex bg-[#FAF9F6] p-1.5 rounded-2xl border border-zinc-200/80">
+                  <div className="flex bg-[#050505] p-1.5 rounded-2xl border border-white/10/80">
                     <button
                       type="button"
                       onClick={() => {
                         setUploadSource("pdf");
                         setPdfUrl("");
                       }}
-                      className={`flex-1 py-3 text-[11px] uppercase tracking-widest font-black rounded-xl transition-all cursor-pointer ${uploadSource === "pdf" ? "bg-white text-zinc-900 border border-zinc-200 shadow-sm" : "text-zinc-400 hover:text-zinc-750"}`}
+                      className={`flex-1 py-3 text-[11px] uppercase tracking-widest font-black rounded-xl transition-all cursor-pointer ${uploadSource === "pdf" ? "bg-[#0A0A0A] text-gray-100 border border-white/10 shadow-sm" : "text-zinc-400 hover:text-zinc-750"}`}
                     >
                       PDF Document
                     </button>
@@ -2425,14 +2425,14 @@ This publication contains live, interactive text layouts, custom speech soundsca
                         setUploadSource("slides");
                         setPdfUrl("");
                       }}
-                      className={`flex-1 py-3 text-[11px] uppercase tracking-widest font-black rounded-xl transition-all cursor-pointer ${uploadSource === "slides" ? "bg-white text-zinc-900 border border-zinc-200 shadow-sm" : "text-zinc-400 hover:text-zinc-750"}`}
+                      className={`flex-1 py-3 text-[11px] uppercase tracking-widest font-black rounded-xl transition-all cursor-pointer ${uploadSource === "slides" ? "bg-[#0A0A0A] text-gray-100 border border-white/10 shadow-sm" : "text-zinc-400 hover:text-zinc-750"}`}
                     >
                       Google Slides
                     </button>
                   </div>
 
-                  <div className="bg-[#FAF9F6] p-6 rounded-3xl border border-zinc-200/60">
-                    <label className="block text-[10px] font-black text-zinc-700 uppercase tracking-widest mb-3">
+                  <div className="bg-[#050505] p-6 rounded-3xl border border-white/10/60">
+                    <label className="block text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-3">
                       Publication Identity
                     </label>
                     <input
@@ -2444,14 +2444,14 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           ? "e.g. Sales Presentation Q3"
                           : "e.g. Spring Catalog 2025"
                       }
-                      className="w-full bg-white border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-semibold text-zinc-800 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none transition-all shadow-xs"
+                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl px-5 py-3.5 text-sm font-semibold text-zinc-200 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none transition-all shadow-xs"
                     />
                   </div>
 
                   {uploadSource === "pdf" ? (
                     <div className="space-y-6">
-                      <div className="bg-[#FAF9F6] p-6 rounded-3xl border border-zinc-200/60">
-                        <label className="block text-[10px] font-black text-zinc-700 uppercase tracking-widest mb-3">
+                      <div className="bg-[#050505] p-6 rounded-3xl border border-white/10/60">
+                        <label className="block text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-3">
                           PDF Document Link
                         </label>
                         <input
@@ -2459,10 +2459,10 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           value={pdfUrl}
                           onChange={(e) => setPdfUrl(e.target.value)}
                           placeholder="https://example.com/magazine.pdf"
-                          className="w-full bg-white border border-zinc-200 rounded-2xl px-5 py-3.5 text-xs font-mono text-zinc-650 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none transition-all shadow-xs"
+                          className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl px-5 py-3.5 text-xs font-mono text-zinc-300 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none transition-all shadow-xs"
                         />
                       </div>
-                      <div className="border-2 border-dashed border-zinc-200 rounded-[2.5rem] p-10 text-center hover:border-indigo-400 hover:bg-indigo-50/10 transition-all cursor-pointer relative group">
+                      <div className="border-2 border-dashed border-white/10 rounded-[2.5rem] p-10 text-center hover:border-indigo-400 hover:bg-indigo-900/30/10 transition-all cursor-pointer relative group">
                         <input
                           type="file"
                           accept="application/pdf"
@@ -2481,10 +2481,10 @@ This publication contains live, interactive text layouts, custom speech soundsca
                             }
                           }}
                         />
-                        <div className="w-16 h-16 bg-[#FAF9F6] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-zinc-200/60 transition-transform group-hover:scale-110">
+                        <div className="w-16 h-16 bg-[#050505] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10/60 transition-transform group-hover:scale-110">
                           <FileText className="text-zinc-500" size={32} />
                         </div>
-                        <p className="text-sm font-black text-zinc-800 uppercase tracking-widest">
+                        <p className="text-sm font-black text-zinc-200 uppercase tracking-widest">
                           Deploy Local PDF
                         </p>
                         <p className="text-[10px] text-zinc-400 mt-2 font-bold uppercase tracking-wider">
@@ -2494,8 +2494,8 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="bg-[#FAF9F6] p-6 rounded-3xl border border-zinc-200/60">
-                        <label className="block text-[10px] font-black text-zinc-700 uppercase tracking-widest mb-3">
+                      <div className="bg-[#050505] p-6 rounded-3xl border border-white/10/60">
+                        <label className="block text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-3">
                           Google Presentation Key
                         </label>
                         <input
@@ -2512,7 +2512,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                             }
                           }}
                           placeholder="Paste G-Slides URL here..."
-                          className="w-full bg-white border border-zinc-200 rounded-2xl px-5 py-3.5 text-xs font-mono text-zinc-650 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none transition-all shadow-xs"
+                          className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl px-5 py-3.5 text-xs font-mono text-zinc-300 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none transition-all shadow-xs"
                         />
                         <p className="text-[10px] text-zinc-400 mt-4 leading-relaxed font-bold uppercase tracking-wider">
                           Ensure share setting is set to{" "}
@@ -2522,13 +2522,13 @@ This publication contains live, interactive text layouts, custom speech soundsca
                         </p>
                       </div>
 
-                      <div className="bg-indigo-50/45 border border-indigo-100 p-6 rounded-3xl text-[10px] uppercase font-black tracking-widest text-indigo-650 leading-relaxed">
-                        <h5 className="text-zinc-900 flex items-center gap-1.5 mb-2 font-bold">
+                      <div className="bg-indigo-900/30/45 border border-indigo-500/20 p-6 rounded-3xl text-[10px] uppercase font-black tracking-widest text-indigo-650 leading-relaxed">
+                        <h5 className="text-gray-100 flex items-center gap-1.5 mb-2 font-bold">
                           <Sparkles size={14} className="text-indigo-650" /> Power-Tip
                         </h5>
                         <p>
                           Open PowerPoint in Slides and select{" "}
-                          <strong className="text-zinc-800">File &rarr; Save as Google Slides</strong> to import!
+                          <strong className="text-zinc-200">File &rarr; Save as Google Slides</strong> to import!
                         </p>
                       </div>
                     </div>
@@ -2551,7 +2551,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                       <input
                         type="checkbox"
                         defaultChecked
-                        className="w-5 h-5 rounded border-zinc-300 text-indigo-650 focus:ring-indigo-500 bg-white"
+                        className="w-5 h-5 rounded border-zinc-300 text-indigo-650 focus:ring-indigo-500 bg-[#0A0A0A]"
                       />
                       <span className="text-sm font-semibold">
                         Enable Text-to-Speech Companion
@@ -2559,9 +2559,9 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     </label>
                   </div>
 
-                  <div className="p-5 rounded-2xl border border-indigo-100 bg-indigo-50/10">
+                  <div className="p-5 rounded-2xl border border-indigo-500/20 bg-indigo-900/30/10">
                     <h4 className="font-bold flex items-center gap-2 mb-1 text-zinc-850">
-                      <Bot size={16} className="text-indigo-600" />{" "}
+                      <Bot size={16} className="text-indigo-400" />{" "}
                       Conversational Copilot
                     </h4>
                     <p className="text-xs text-zinc-550 mb-3 font-semibold">
@@ -2572,7 +2572,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                       <input
                         type="checkbox"
                         defaultChecked
-                        className="w-5 h-5 rounded border-zinc-300 text-indigo-650 focus:ring-indigo-500 bg-white"
+                        className="w-5 h-5 rounded border-zinc-300 text-indigo-650 focus:ring-indigo-500 bg-[#0A0A0A]"
                       />
                       <span className="text-sm font-semibold">
                         Enable Voice Barging Copilot
@@ -2580,15 +2580,15 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     </label>
 
                     <div className="space-y-6">
-                      <div className="bg-[#FAF9F6] p-6 rounded-3xl border border-zinc-200/60 shadow-xs">
-                        <label className="text-[10px] font-black text-zinc-700 uppercase tracking-widest block mb-3">
+                      <div className="bg-[#050505] p-6 rounded-3xl border border-white/10/60 shadow-xs">
+                        <label className="text-[10px] font-black text-zinc-300 uppercase tracking-widest block mb-3">
                           Conversational Personality
                         </label>
                         <div className="relative">
                           <select
                             value={aiPersonality}
                             onChange={(e) => setAiPersonality(e.target.value)}
-                            className="w-full bg-white border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-zinc-800 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none appearance-none transition-all shadow-sm"
+                            className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl px-5 py-3.5 text-sm font-bold text-zinc-200 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none appearance-none transition-all shadow-sm"
                           >
                             <option>Professional Assistant</option>
                             <option>Casual Guide</option>
@@ -2602,16 +2602,16 @@ This publication contains live, interactive text layouts, custom speech soundsca
                         </div>
                       </div>
 
-                      <div className="bg-[#FAF9F6] p-6 rounded-3xl border border-zinc-200/60 shadow-xs">
-                        <label className="text-[10px] font-black text-zinc-700 uppercase tracking-widest flex justify-between items-center mb-3">
+                      <div className="bg-[#050505] p-6 rounded-3xl border border-white/10/60 shadow-xs">
+                        <label className="text-[10px] font-black text-zinc-300 uppercase tracking-widest flex justify-between items-center mb-3">
                           Knowledge Directory / Context
-                          <span className="text-[10px] text-indigo-650 bg-indigo-50 px-2.5 py-0.5 rounded-full lowercase font-semibold">Smart indexing</span>
+                          <span className="text-[10px] text-indigo-650 bg-indigo-900/30 px-2.5 py-0.5 rounded-full lowercase font-semibold">Smart indexing</span>
                         </label>
                         <div className="relative">
                           <textarea 
                             value={aiContext}
                             onChange={(e) => setAiContext(e.target.value)}
-                            className="w-full bg-white border border-zinc-200 rounded-3xl px-6 py-5 text-sm font-medium text-zinc-800 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none h-40 resize-none transition-all leading-relaxed placeholder:text-zinc-350 shadow-sm"
+                            className="w-full bg-[#0A0A0A] border border-white/10 rounded-3xl px-6 py-5 text-sm font-medium text-zinc-200 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none h-40 resize-none transition-all leading-relaxed placeholder:text-zinc-350 shadow-sm"
                             placeholder="e.g. Page 5: Focus on irrigation technology. Page 12: Croplan technical data. Advertiser STIHL featured on page 24..."
                           ></textarea>
                            <div className="absolute bottom-4 right-4 pointer-events-none opacity-10 text-indigo-950">
@@ -2625,7 +2625,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
               )}
 
               {uploadStep === "processing" && (
-                <div className="flex flex-col items-center justify-center h-full space-y-6 py-10 bg-white">
+                <div className="flex flex-col items-center justify-center h-full space-y-6 py-10 bg-[#0A0A0A]">
                   {/* Perfect SVG Circular progress tracker */}
                   <div className="relative flex items-center justify-center w-28 h-28">
                     <svg className="w-full h-full transform -rotate-90 select-none" viewBox="0 0 100 100">
@@ -2660,7 +2660,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                         className="text-[#00c896] animate-pulse"
                         size={22}
                       />
-                      <span className="text-sm font-black text-zinc-900 mt-0.5 select-none font-mono">
+                      <span className="text-sm font-black text-gray-100 mt-0.5 select-none font-mono">
                         {processingPercent}%
                       </span>
                     </div>
@@ -2672,9 +2672,9 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     </h4>
                     
                     {/* Synchronized dynamic checklist of document steps */}
-                    <ul className="text-xs text-zinc-650 space-y-3.5 text-left w-56 mx-auto mt-5">
+                    <ul className="text-xs text-zinc-300 space-y-3.5 text-left w-56 mx-auto mt-5">
                       <li className={`flex items-center gap-2.5 font-bold transition-all duration-300 ${
-                        processingPercent >= 35 ? 'text-emerald-600' : 'text-zinc-800'
+                        processingPercent >= 35 ? 'text-emerald-600' : 'text-zinc-200'
                       }`}>
                         {processingPercent >= 35 ? (
                           <CheckCircle2 size={15} className="text-[#00c896] shrink-0" />
@@ -2688,14 +2688,14 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
                       <li className={`flex items-center gap-2.5 font-bold transition-all duration-300 ${
                         processingPercent >= 70 ? 'text-emerald-600' : 
-                        processingPercent >= 35 ? 'text-zinc-800' : 'text-zinc-400'
+                        processingPercent >= 35 ? 'text-zinc-200' : 'text-zinc-400'
                       }`}>
                         {processingPercent >= 70 ? (
                           <CheckCircle2 size={15} className="text-[#00c896] shrink-0" />
                         ) : processingPercent >= 35 ? (
                           <Loader2 size={15} className="animate-spin text-[#00c896] shrink-0" />
                         ) : (
-                          <div className="w-3.5 h-3.5 rounded-full border-2 border-zinc-200 shrink-0" />
+                          <div className="w-3.5 h-3.5 rounded-full border-2 border-white/10 shrink-0" />
                         )}
                         <span className={processingPercent >= 35 && processingPercent < 70 ? 'font-black text-[#00c896]' : 'font-semibold'}>
                           Extracting text layout
@@ -2704,14 +2704,14 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
                       <li className={`flex items-center gap-2.5 font-bold transition-all duration-300 ${
                         processingPercent >= 100 ? 'text-emerald-600' : 
-                        processingPercent >= 70 ? 'text-zinc-800' : 'text-zinc-400'
+                        processingPercent >= 70 ? 'text-zinc-200' : 'text-zinc-400'
                       }`}>
                         {processingPercent >= 100 ? (
                           <CheckCircle2 size={15} className="text-[#00c896] shrink-0" />
                         ) : processingPercent >= 70 ? (
                           <Loader2 size={15} className="animate-spin text-[#00c896] shrink-0" />
                         ) : (
-                          <div className="w-3.5 h-3.5 rounded-full border-2 border-zinc-200 shrink-0" />
+                          <div className="w-3.5 h-3.5 rounded-full border-2 border-white/10 shrink-0" />
                         )}
                         <span className={processingPercent >= 70 && processingPercent < 100 ? 'font-black text-[#00c896]' : 'font-semibold'}>
                           Generating voice models
@@ -2724,12 +2724,12 @@ This publication contains live, interactive text layouts, custom speech soundsca
             </div>
 
             {uploadStep !== "processing" && (
-              <div className="p-6 sm:p-8 border-t border-zinc-150/85 bg-[#FAF9F6] flex justify-between items-center gap-4">
+              <div className="p-6 sm:p-8 border-t border-white/5/85 bg-[#050505] flex justify-between items-center gap-4">
                 {uploadStep === "settings" ? (
                   <>
                     <button
                       onClick={() => setUploadStep("select")}
-                      className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 transition-all rounded-xl border border-zinc-200 cursor-pointer hover:bg-zinc-50"
+                      className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-200 transition-all rounded-xl border border-white/10 cursor-pointer hover:bg-[#1A1A1A]/5"
                     >
                       Back
                     </button>
@@ -2763,45 +2763,45 @@ This publication contains live, interactive text layouts, custom speech soundsca
       {/* --- Batch Sync Progress Overlay Modal --- */}
       {isBatchSyncing && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-zinc-900/40 backdrop-blur-md">
-          <div className="bg-white border border-zinc-200/80 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-zinc-150/80 bg-[#FAF9F6] flex items-center gap-3 animate-fade-in">
+          <div className="bg-[#0A0A0A] border border-white/10/80 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-white/5/80 bg-[#050505] flex items-center gap-3 animate-fade-in">
               <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                 <Globe className="animate-spin text-blue-650" size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-zinc-900">Heyzine Dynamic Sync</h3>
+                <h3 className="font-bold text-lg text-gray-100">Heyzine Dynamic Sync</h3>
                 <p className="text-xs text-zinc-500">
                   Syncing publication assets, metadata profiles, and Conversational AI payloads...
                 </p>
               </div>
             </div>
 
-            <div className="p-6 space-y-4 max-h-[50vh] overflow-y-auto bg-white">
+            <div className="p-6 space-y-4 max-h-[50vh] overflow-y-auto bg-[#0A0A0A]">
               {/* Overall Progress Bar */}
               {(() => {
                 const total = Object.keys(batchSyncProgress).length;
                 const completed = Object.values(batchSyncProgress).filter((p: any) => p.status === 'completed' || p.status === 'failed').length;
                 const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
                 return (
-                  <div className="space-y-1.5 pb-4 border-b border-zinc-150/80">
+                  <div className="space-y-1.5 pb-4 border-b border-white/5/80">
                     <div className="flex justify-between text-xs font-semibold font-mono text-zinc-500">
                       <span>SYNC PROGRESS</span>
                       <span>{completed} / {total} COMPLETED ({percent}%)</span>
                     </div>
-                    <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
                       <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${percent}%` }}></div>
                     </div>
                   </div>
                 );
               })()}
 
-              <div className="space-y-3 bg-white">
+              <div className="space-y-3 bg-[#0A0A0A]">
                 {Object.keys(batchSyncProgress).map((magId) => {
                   const mag = myMagazines.find(m => m.id === magId);
                   const progress = batchSyncProgress[magId];
                   if (!mag) return null;
                   return (
-                    <div key={magId} className="flex justify-between items-center p-3 rounded-lg bg-[#FAF9F6] border border-zinc-200/60">
+                    <div key={magId} className="flex justify-between items-center p-3 rounded-lg bg-[#050505] border border-white/10/60">
                       <div className="flex items-center gap-3 min-w-0 pr-4">
                         <div className="w-8 h-8 rounded bg-zinc-200/40 flex items-center justify-center shrink-0">
                           {mag.coverUrl ? (
@@ -2811,7 +2811,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-zinc-800 truncate">{mag.title}</p>
+                          <p className="text-xs font-bold text-zinc-200 truncate">{mag.title}</p>
                           <p className="text-[10px] font-mono text-zinc-400 flex items-center gap-1.5 mt-0.5">
                             {mag.aiEnabled ? (
                               <span className="text-purple-600 font-semibold bg-purple-50 px-1.5 py-0.2 rounded">AI Copilot</span>
@@ -2849,7 +2849,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
               </div>
             </div>
 
-            <div className="p-4 bg-[#FAF9F6] border-t border-zinc-150/80 flex justify-end gap-2">
+            <div className="p-4 bg-[#050505] border-t border-white/5/80 flex justify-end gap-2">
               {Object.values(batchSyncProgress).every((p: any) => p.status === 'completed' || p.status === 'failed') ? (
                 <button
                   onClick={() => {
@@ -2863,7 +2863,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
               ) : (
                 <button
                   onClick={() => setIsBatchSyncing(false)}
-                  className="px-4 py-2 rounded-lg text-zinc-500 hover:text-zinc-800 font-bold text-[10px] tracking-wider uppercase transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-zinc-500 hover:text-zinc-200 font-bold text-[10px] tracking-wider uppercase transition-colors cursor-pointer"
                 >
                   Run in Background
                 </button>
@@ -2876,9 +2876,9 @@ This publication contains live, interactive text layouts, custom speech soundsca
       {/* --- Customize Digital Suite Looks Modal --- */}
       {isCustomizeOpen && selectedHzPub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 backdrop-blur-sm shadow-2xl">
-          <div className="bg-white border border-zinc-200/80 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-5 border-b border-zinc-150/80 bg-[#FAF9F6]">
-              <h3 className="font-bold text-lg flex items-center gap-2 text-zinc-900">
+          <div className="bg-[#0A0A0A] border border-white/10/80 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-5 border-b border-white/5/80 bg-[#050505]">
+              <h3 className="font-bold text-lg flex items-center gap-2 text-gray-100">
                 <Settings
                   size={20}
                   className="text-indigo-650"
@@ -2887,18 +2887,18 @@ This publication contains live, interactive text layouts, custom speech soundsca
               </h3>
               <button
                 onClick={() => setIsCustomizeOpen(false)}
-                className="text-zinc-400 hover:text-zinc-800 p-2 hover:bg-zinc-100 rounded-xl transition-all cursor-pointer"
+                className="text-zinc-400 hover:text-zinc-200 p-2 hover:bg-[#1A1A1A]/10 rounded-xl transition-all cursor-pointer"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="p-6 space-y-6 flex-1 max-h-[70vh] overflow-y-auto bg-white text-zinc-800">
+            <div className="p-6 space-y-6 flex-1 max-h-[70vh] overflow-y-auto bg-[#0A0A0A] text-zinc-200">
               <div>
                 <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-400 font-bold">
                   Selected Publication
                 </span>
-                <h4 className="text-base font-bold text-zinc-900 mt-0.5">
+                <h4 className="text-base font-bold text-gray-100 mt-0.5">
                   {selectedHzPub.title || selectedHzPub.name}
                 </h4>
                 <p className="text-xs text-zinc-500 truncate mt-0.5">
@@ -2906,7 +2906,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                 </p>
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-zinc-150/80">
+              <div className="space-y-4 pt-4 border-t border-white/5/80">
                 {/* Selected Skin Theme */}
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-wider font-bold text-zinc-500 block">
@@ -2915,7 +2915,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                   <select
                     value={hzTheme}
                     onChange={(e) => setFbTheme(e.target.value)}
-                    className="w-full bg-white border border-zinc-250 rounded-lg px-4 py-3 text-sm font-semibold focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none text-zinc-800"
+                    className="w-full bg-[#0A0A0A] border border-zinc-250 rounded-lg px-4 py-3 text-sm font-semibold focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none text-zinc-200"
                   >
                     <option value="slate">Minimal Deep Charcoal (Slate)</option>
                     <option value="wooden">Warm Chestnut Oak Desk (Wooden)</option>
@@ -2936,7 +2936,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     placeholder="https://example.com/logo.png"
                     value={hzLogoUrl}
                     onChange={(e) => setFbLogoUrl(e.target.value)}
-                    className="w-full bg-white border border-zinc-250 rounded-lg px-4 py-2.5 text-sm text-zinc-800 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none"
+                    className="w-full bg-[#0A0A0A] border border-zinc-250 rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400 focus:outline-none"
                   />
                   <p className="text-[10px] text-zinc-400 leading-relaxed font-semibold">
                     Overlay a custom company watermark logo on the corner of the reader.
@@ -2967,12 +2967,12 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
                 {/* Switch checkbox options */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <label className="flex items-start gap-3 p-3 bg-[#FAF9F6] border border-zinc-200/60 rounded-xl cursor-pointer hover:border-zinc-300 transition-all select-none">
+                  <label className="flex items-start gap-3 p-3 bg-[#050505] border border-white/10/60 rounded-xl cursor-pointer hover:border-zinc-300 transition-all select-none">
                     <input
                       type="checkbox"
                       checked={hzHardCover}
                       onChange={(e) => setFbHardCover(e.target.checked)}
-                      className="w-5 h-5 rounded border-zinc-300 text-indigo-650 bg-white mt-0.5"
+                      className="w-5 h-5 rounded border-zinc-300 text-indigo-650 bg-[#0A0A0A] mt-0.5"
                     />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-zinc-850">
@@ -2984,12 +2984,12 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 p-3 bg-[#FAF9F6] border border-zinc-200/60 rounded-xl cursor-pointer hover:border-zinc-300 transition-all select-none">
+                  <label className="flex items-start gap-3 p-3 bg-[#050505] border border-white/10/60 rounded-xl cursor-pointer hover:border-zinc-300 transition-all select-none">
                     <input
                       type="checkbox"
                       checked={hzSoundEnabled}
                       onChange={(e) => setFbSoundEnabled(e.target.checked)}
-                      className="w-5 h-5 rounded border-zinc-300 text-indigo-650 bg-white mt-0.5"
+                      className="w-5 h-5 rounded border-zinc-300 text-indigo-650 bg-[#0A0A0A] mt-0.5"
                     />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-zinc-850">
@@ -3001,12 +3001,12 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 p-3 bg-[#FAF9F6] border border-zinc-200/60 rounded-xl cursor-pointer hover:border-zinc-300 transition-all select-none col-span-1 sm:col-span-2">
+                  <label className="flex items-start gap-3 p-3 bg-[#050505] border border-white/10/60 rounded-xl cursor-pointer hover:border-zinc-300 transition-all select-none col-span-1 sm:col-span-2">
                     <input
                       type="checkbox"
                       checked={hzEnableRtl}
                       onChange={(e) => setFbEnableRtl(e.target.checked)}
-                      className="w-5 h-5 rounded border-zinc-300 text-indigo-650 bg-white mt-0.5"
+                      className="w-5 h-5 rounded border-zinc-300 text-indigo-650 bg-[#0A0A0A] mt-0.5"
                     />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-zinc-850">
@@ -3020,7 +3020,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                 </div>
 
                 {/* AI Guidance Context inside same modal! */}
-                <div className="space-y-4 pt-4 border-t border-zinc-200/60">
+                <div className="space-y-4 pt-4 border-t border-white/10/60">
                   <span className="text-xs uppercase tracking-wider font-bold text-zinc-500 block">
                     AI Conversational Custom Intelligence
                   </span>
@@ -3032,7 +3032,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                       value={hzAiPersonality}
                       onChange={(e) => setHzAiPersonality(e.target.value)}
                       placeholder="Professional Assistant / Interactive Curator"
-                      className="w-full bg-white border border-[#dddddd] rounded-lg px-4 py-2.5 text-sm text-zinc-800 focus:outline-none focus:border-[#00c896]"
+                      className="w-full bg-[#0A0A0A] border border-[#dddddd] rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-[#00c896]"
                     />
                   </div>
 
@@ -3043,17 +3043,17 @@ This publication contains live, interactive text layouts, custom speech soundsca
                       value={hzAiContext}
                       onChange={(e) => setHzAiContext(e.target.value)}
                       placeholder="Add system behavior guidelines, specific corporate values, contact details, or background facts..."
-                      className="w-full bg-white border border-[#dddddd] rounded-lg px-4 py-2.5 text-sm text-zinc-800 focus:outline-none focus:border-[#00c896]"
+                      className="w-full bg-[#0A0A0A] border border-[#dddddd] rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-[#00c896]"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-5 border-t border-zinc-150/80 bg-[#FAF9F6] flex justify-end gap-3">
+            <div className="p-5 border-t border-white/5/80 bg-[#050505] flex justify-end gap-3">
               <button
                 onClick={() => setIsCustomizeOpen(false)}
-                className="px-4 py-2 rounded-lg text-xs tracking-wider uppercase font-bold text-zinc-500 hover:text-zinc-800 cursor-pointer"
+                className="px-4 py-2 rounded-lg text-xs tracking-wider uppercase font-bold text-zinc-500 hover:text-zinc-200 cursor-pointer"
               >
                 Close
               </button>
@@ -3080,24 +3080,24 @@ This publication contains live, interactive text layouts, custom speech soundsca
       {/* --- Tracked Links Generation Portal Modal --- */}
       {isTrackedLinkOpen && selectedHzPub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 backdrop-blur-sm">
-          <div className="bg-white border border-zinc-200/80 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex justify-between items-center p-5 border-b border-zinc-150/80 bg-[#FAF9F6] text-zinc-900">
-              <h3 className="font-bold text-lg flex items-center gap-2 text-zinc-900">
+          <div className="bg-[#0A0A0A] border border-white/10/80 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-5 border-b border-white/5/80 bg-[#050505] text-gray-100">
+              <h3 className="font-bold text-lg flex items-center gap-2 text-gray-100">
                 <LinkIcon size={20} className="text-blue-600 animate-pulse" />{" "}
                 Individual Tracked Campaign Links
               </h3>
               <button
                 onClick={() => setIsTrackedLinkOpen(false)}
-                className="text-zinc-400 hover:text-zinc-805 p-2 hover:bg-zinc-100 rounded-xl transition-all cursor-pointer"
+                className="text-zinc-400 hover:text-zinc-805 p-2 hover:bg-[#1A1A1A]/10 rounded-xl transition-all cursor-pointer"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="p-6 space-y-6 flex-1 overflow-y-auto bg-white text-zinc-805">
+            <div className="p-6 space-y-6 flex-1 overflow-y-auto bg-[#0A0A0A] text-zinc-805">
               {/* Publication snapshot info */}
-              <div className="bg-[#FAF9F6] border border-zinc-200/60 p-4 rounded-xl flex items-start gap-4">
-                <div className="w-12 h-12 bg-zinc-100 border border-zinc-200/80 rounded-lg flex items-center justify-center shrink-0">
+              <div className="bg-[#050505] border border-white/10/60 p-4 rounded-xl flex items-start gap-4">
+                <div className="w-12 h-12 bg-white/10 border border-white/10/80 rounded-lg flex items-center justify-center shrink-0">
                   <FileText size={24} className="text-blue-600" />
                 </div>
                 <div className="min-w-0">
@@ -3119,7 +3119,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
               </div>
 
               {/* Generate Form */}
-              <div className="p-5 rounded-xl border border-zinc-200 bg-[#FAF9F6] space-y-4">
+              <div className="p-5 rounded-xl border border-white/10 bg-[#050505] space-y-4">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-indigo-650">
                   Spawn Individual Tracked Link
                 </h4>
@@ -3133,7 +3133,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                       placeholder="e.g. Sales Outreach - Acme Corporation"
                       value={linkTitle}
                       onChange={(e) => setLinkTitle(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 font-semibold focus:outline-none focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400"
+                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-2 text-xs text-zinc-200 font-semibold focus:outline-none focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400"
                     />
                   </div>
 
@@ -3144,7 +3144,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     <select
                       value={linkNotify}
                       onChange={(e) => setLinkNotify(e.target.value)}
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-800 focus:outline-none focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400"
+                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-200 focus:outline-none focus:ring-4 focus:ring-indigo-150 focus:border-indigo-400"
                     >
                       <option value="Email">
                         Instant Delivery Email Notification
@@ -3157,30 +3157,30 @@ This publication contains live, interactive text layouts, custom speech soundsca
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                  <label className="flex items-center gap-2 text-xs cursor-pointer select-none text-zinc-650 font-semibold">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer select-none text-zinc-300 font-semibold">
                     <input
                       type="checkbox"
                       checked={linkOnViewFirst}
                       onChange={(e) => setLinkOnViewFirst(e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-300 text-blue-600 bg-white focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-zinc-300 text-blue-600 bg-[#0A0A0A] focus:ring-blue-500"
                     />
                     <span>Alert on first view</span>
                   </label>
-                  <label className="flex items-center gap-2 text-xs cursor-pointer select-none text-zinc-650 font-semibold">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer select-none text-zinc-300 font-semibold">
                     <input
                       type="checkbox"
                       checked={linkOnViewTen}
                       onChange={(e) => setLinkOnViewTen(e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-300 text-blue-600 bg-white focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-zinc-300 text-blue-600 bg-[#0A0A0A] focus:ring-blue-500"
                     />
                     <span>Alert on deep reading</span>
                   </label>
-                  <label className="flex items-center gap-2 text-xs cursor-pointer select-none text-zinc-650 font-semibold">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer select-none text-zinc-300 font-semibold">
                     <input
                       type="checkbox"
                       checked={linkOnDownload}
                       onChange={(e) => setLinkOnDownload(e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-300 text-blue-600 bg-white focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-zinc-300 text-blue-600 bg-[#0A0A0A] focus:ring-blue-500"
                     />
                     <span>Alert on PDF downloads</span>
                   </label>
@@ -3212,7 +3212,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                   Deployed De-duplicated Links ({trackedLinks.length})
                 </h4>
                 {trackedLinksLoading ? (
-                  <div className="py-12 text-center text-xs text-zinc-500 bg-white">
+                  <div className="py-12 text-center text-xs text-zinc-500 bg-[#0A0A0A]">
                     <Loader2
                       size={24}
                       className="animate-spin text-indigo-650 mx-auto mb-2"
@@ -3220,7 +3220,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     Loading analytics links...
                   </div>
                 ) : trackedLinks.length === 0 ? (
-                  <div className="border border-zinc-200/80 rounded-xl p-8 text-center text-xs text-zinc-450 bg-zinc-50/50">
+                  <div className="border border-white/10/80 rounded-xl p-8 text-center text-xs text-zinc-450 bg-white/5/50">
                     No tracked campaign targets built for this publication yet.
                     Start by filling the tracking alert form above!
                   </div>
@@ -3229,22 +3229,22 @@ This publication contains live, interactive text layouts, custom speech soundsca
                     {trackedLinks.map((link: any) => (
                       <div
                         key={link.id}
-                        className="bg-[#FAF9F6] p-4 border border-zinc-200/60 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-zinc-300 transition-colors"
+                        className="bg-[#050505] p-4 border border-white/10/60 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-zinc-300 transition-colors"
                       >
                         <div className="space-y-1.5 min-w-0 flex-1 w-full">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-xs truncate text-zinc-900 max-w-[200px] block">
+                            <span className="font-semibold text-xs truncate text-gray-100 max-w-[200px] block">
                               {link.title || link.id}
                             </span>
                             <span
-                              className={`px-2 py-0.5 rounded text-[8px] font-mono tracking-widest uppercase font-bold ${link.state === "Deactivated" || link.state === "Disabled" ? "bg-red-50 text-red-750 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}
+                              className={`px-2 py-0.5 rounded text-[8px] font-mono tracking-widest uppercase font-bold ${link.state === "Deactivated" || link.state === "Disabled" ? "bg-red-50 text-red-750 border border-red-200" : "bg-emerald-900/30 text-emerald-700 border border-emerald-200"}`}
                             >
                               {link.state || "Active"}
                             </span>
                           </div>
 
                           {/* Copy link bar */}
-                          <div className="flex items-center gap-1.5 bg-white border border-zinc-150/80 px-2.5 py-1.5 user-select-all rounded w-full">
+                          <div className="flex items-center gap-1.5 bg-[#0A0A0A] border border-white/5/80 px-2.5 py-1.5 user-select-all rounded w-full">
                             <input
                               type="text"
                               readOnly
@@ -3258,7 +3258,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                               title="Click to select all & Copy Url"
                               className="bg-transparent border-none text-[10px] font-mono text-zinc-600 w-full focus:outline-none cursor-pointer font-medium"
                             />
-                            <span className="text-[8px] uppercase tracking-wider text-zinc-400 hover:text-zinc-800 font-bold px-1 font-mono select-none">
+                            <span className="text-[8px] uppercase tracking-wider text-zinc-400 hover:text-zinc-200 font-bold px-1 font-mono select-none">
                               Copy
                             </span>
                           </div>
@@ -3278,7 +3278,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
                             </span>
                             <span>
                               Setup:{" "}
-                              <strong className="text-zinc-700 font-semibold">
+                              <strong className="text-zinc-300 font-semibold">
                                 {link.notifOnFirstView ? "View1" : ""}
                                 {link.notifOnSpentTime ? ", Read10" : ""}
                                 {link.notifOnDownload ? ", DL" : ""}
@@ -3289,7 +3289,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
 
                         <button
                           onClick={() => toggleLinkState(link.id, link.state)}
-                          className={`px-3 py-1.5 text-[10px] font-bold rounded transition-all shrink-0 cursor-pointer ${link.state === "Deactivated" || link.state === "Disabled" ? "bg-emerald-50 hover:bg-emerald-100/85 text-emerald-700 border border-emerald-200" : "bg-red-50 hover:bg-red-105/85 text-red-700 border border-red-200"}`}
+                          className={`px-3 py-1.5 text-[10px] font-bold rounded transition-all shrink-0 cursor-pointer ${link.state === "Deactivated" || link.state === "Disabled" ? "bg-emerald-900/30 hover:bg-emerald-100/85 text-emerald-700 border border-emerald-200" : "bg-red-50 hover:bg-red-105/85 text-red-700 border border-red-200"}`}
                         >
                           {link.state === "Deactivated" ||
                           link.state === "Disabled"
@@ -3303,10 +3303,10 @@ This publication contains live, interactive text layouts, custom speech soundsca
               </div>
             </div>
 
-            <div className="p-5 border-t border-zinc-150/80 bg-[#FAF9F6] flex justify-end">
+            <div className="p-5 border-t border-white/5/80 bg-[#050505] flex justify-end">
               <button
                 onClick={() => setIsTrackedLinkOpen(false)}
-                className="px-5 py-2.5 rounded-lg text-xs tracking-wider uppercase font-bold bg-[#FAF9F6] hover:bg-zinc-100 border border-zinc-200 text-zinc-600 hover:text-zinc-850 transition-colors cursor-pointer"
+                className="px-5 py-2.5 rounded-lg text-xs tracking-wider uppercase font-bold bg-[#050505] hover:bg-[#1A1A1A]/10 border border-white/10 text-zinc-600 hover:text-zinc-850 transition-colors cursor-pointer"
               >
                 Done & Close
               </button>
@@ -3322,11 +3322,11 @@ This publication contains live, interactive text layouts, custom speech soundsca
             className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" 
             onClick={() => setMagToDelete(null)}
           />
-          <div className="bg-white rounded-2xl shadow-2xl relative z-10 w-full max-w-sm overflow-hidden p-6 text-center shadow-red-900/10 border border-zinc-100 animate-in zoom-in-95 duration-200">
+          <div className="bg-[#0A0A0A] rounded-2xl shadow-2xl relative z-10 w-full max-w-sm overflow-hidden p-6 text-center shadow-red-900/10 border border-white/5 animate-in zoom-in-95 duration-200">
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100 text-red-500">
               <Trash2 size={24} strokeWidth={2.5} />
             </div>
-            <h3 className="text-[17px] font-black font-sans text-zinc-900 mb-2 leading-tight">
+            <h3 className="text-[17px] font-black font-sans text-gray-100 mb-2 leading-tight">
               Delete "{myMagazines.find(m => m.id === magToDelete)?.title || 'Publication'}"?
             </h3>
             <p className="text-sm font-medium text-zinc-500 mb-8 leading-relaxed">
@@ -3335,7 +3335,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
             <div className="flex gap-3">
               <button 
                 onClick={() => setMagToDelete(null)}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-widest bg-zinc-100 border border-zinc-200/60 text-zinc-600 hover:bg-zinc-200 transition-colors cursor-pointer"
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-widest bg-white/10 border border-white/10/60 text-zinc-600 hover:bg-zinc-200 transition-colors cursor-pointer"
               >
                 Cancel
               </button>

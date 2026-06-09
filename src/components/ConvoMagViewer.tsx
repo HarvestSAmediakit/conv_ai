@@ -233,10 +233,11 @@ const FlipPage = React.forwardRef(({ pageNumber, width, height, overlayType, isD
       style={{ width: `${width}px`, height: `${height}px` }}
     >
       <motion.div
-        initial={{ opacity: 0, filter: "blur(4px)" }}
-        whileInView={{ opacity: 1, filter: "blur(0px)" }}
+        initial={{ opacity: 0, filter: "blur(4px)", rotateY: 15, z: -50, transformPerspective: 1200 }}
+        whileInView={{ opacity: 1, filter: "blur(0px)", rotateY: 0, z: 0 }}
         viewport={{ once: true, amount: 0.1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: "backOut" }}
+        style={{ transformOrigin: "left center" }}
         className="w-full h-full relative"
       >
         <DrawingOverlay 

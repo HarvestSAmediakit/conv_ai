@@ -60,15 +60,15 @@ export default function AdvertiserDashboard() {
   const campaignsList = getCampaigns();
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 font-sans selection:bg-[#00c896]/10">
+    <div className="min-h-screen bg-[#050505] text-gray-100 font-sans selection:bg-[#00c896]/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/home')} className="p-2 bg-white border border-zinc-200 rounded-full hover:bg-zinc-50 transition-colors">
+            <button onClick={() => navigate('/home')} className="p-2 bg-[#0A0A0A] border border-white/10 rounded-full hover:bg-[#1A1A1A]/5 transition-colors">
               <ArrowLeft size={20} />
             </button>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-zinc-900">Advertiser Intelligence</h1>
+              <h1 className="text-3xl font-black tracking-tight text-gray-100">Advertiser Intelligence</h1>
               <p className="text-sm font-semibold text-zinc-500 uppercase tracking-widest mt-1">ConvoMag Monetization Hub</p>
             </div>
           </div>
@@ -85,17 +85,17 @@ export default function AdvertiserDashboard() {
             { label: 'Avg. Engagement Time', value: '2m 14s', change: '+5.2%', icon: TrendingUp },
             { label: 'Unique Readers', value: '412,900', change: '+18.1%', icon: Users },
           ].map((stat, i) => (
-            <div key={i} className="bg-white p-6 rounded-3xl border border-zinc-200/60 shadow-sm flex flex-col">
+            <div key={i} className="bg-[#0A0A0A] p-6 rounded-3xl border border-white/10/60 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-[#00c896]/10 rounded-xl">
                   <stat.icon size={20} className="text-[#00c896]" />
                 </div>
-                <span className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                <span className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-900/30 px-2 py-1 rounded-md">
                   <ArrowUpRight size={12} className="mr-1" /> {stat.change}
                 </span>
               </div>
               <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">{stat.label}</h3>
-              <p className="text-3xl font-black text-zinc-900">{stat.value}</p>
+              <p className="text-3xl font-black text-gray-100">{stat.value}</p>
             </div>
           ))}
         </div>
@@ -103,16 +103,16 @@ export default function AdvertiserDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Main Chart Area */}
           <div className="lg:col-span-2">
-             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200/60 shadow-sm h-full">
+             <div className="bg-[#0A0A0A] p-6 sm:p-8 rounded-3xl border border-white/10/60 shadow-sm h-full">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-lg font-black tracking-tight text-zinc-900">Engagement Over Time</h2>
-                  <select className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 text-xs font-bold text-zinc-600 outline-none cursor-pointer">
+                  <h2 className="text-lg font-black tracking-tight text-gray-100">Engagement Over Time</h2>
+                  <select className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-bold text-zinc-600 outline-none cursor-pointer">
                     <option>Last 30 Days</option>
                     <option>Last 7 Days</option>
                     <option>Year to Date</option>
                   </select>
                 </div>
-                <div className="h-64 flex items-end justify-between gap-1 sm:gap-2 border-b border-zinc-100 pb-2">
+                <div className="h-64 flex items-end justify-between gap-1 sm:gap-2 border-b border-white/5 pb-2">
                    {[...Array(30)].map((_, i) => {
                      const height1 = Math.random() * 60 + 20;
                      const height2 = Math.random() * 30 + 10;
@@ -137,8 +137,8 @@ export default function AdvertiserDashboard() {
 
           {/* Top Voice Queries */}
           <div className="space-y-6">
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200/60 shadow-sm h-full">
-              <h2 className="text-lg font-black tracking-tight text-zinc-900 mb-6 flex items-center gap-2">
+            <div className="bg-[#0A0A0A] p-6 sm:p-8 rounded-3xl border border-white/10/60 shadow-sm h-full">
+              <h2 className="text-lg font-black tracking-tight text-gray-100 mb-6 flex items-center gap-2">
                 <MessageSquare className="text-indigo-500" size={20} /> Top Voice Questions
               </h2>
               <div className="space-y-4">
@@ -149,10 +149,10 @@ export default function AdvertiserDashboard() {
                   { q: "Are there any discounts available?", count: 4192, trend: "up" },
                   { q: "How long does shipping take?", count: 2841, trend: "neutral" },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-start justify-between border-b border-zinc-100 last:border-0 pb-4 last:pb-0">
-                     <p className="text-sm font-medium text-zinc-700 w-3/4 leading-snug">"{item.q}"</p>
+                  <div key={i} className="flex items-start justify-between border-b border-white/5 last:border-0 pb-4 last:pb-0">
+                     <p className="text-sm font-medium text-zinc-300 w-3/4 leading-snug">"{item.q}"</p>
                      <div className="text-right">
-                        <p className="text-xs font-bold text-zinc-900">{item.count.toLocaleString()}</p>
+                        <p className="text-xs font-bold text-gray-100">{item.count.toLocaleString()}</p>
                         <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Queries</p>
                      </div>
                   </div>
@@ -163,24 +163,24 @@ export default function AdvertiserDashboard() {
         </div>
 
         {/* Campaign Hotspots */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200/60 shadow-sm">
-           <h2 className="text-lg font-black tracking-tight text-zinc-900 mb-6 flex items-center gap-2">
+        <div className="bg-[#0A0A0A] p-6 sm:p-8 rounded-3xl border border-white/10/60 shadow-sm">
+           <h2 className="text-lg font-black tracking-tight text-gray-100 mb-6 flex items-center gap-2">
              <Target className="text-rose-500" size={20} /> Detected Campaign Hotspots
            </h2>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {campaignsList.map((campaign, i) => (
-                 <div key={i} className="border border-zinc-100 rounded-2xl overflow-hidden group cursor-pointer hover:border-zinc-300 transition-colors">
-                    <div className="h-32 bg-zinc-100 relative overflow-hidden">
+                 <div key={i} className="border border-white/5 rounded-2xl overflow-hidden group cursor-pointer hover:border-zinc-300 transition-colors">
+                    <div className="h-32 bg-white/10 relative overflow-hidden">
                        <img src={campaign.img} alt={campaign.name} className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
                        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">
                           Page {campaign.page}
                        </div>
                     </div>
                     <div className="p-4">
-                       <h3 className="font-bold text-zinc-900 text-sm mb-1">{campaign.name}</h3>
+                       <h3 className="font-bold text-gray-100 text-sm mb-1">{campaign.name}</h3>
                        <div className="flex items-center justify-between">
                           <span className="text-xs text-zinc-500">{campaign.type}</span>
-                          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">{campaign.conversion} CTR</span>
+                          <span className="text-xs font-bold text-emerald-600 bg-emerald-900/30 px-2 py-1 rounded">{campaign.conversion} CTR</span>
                        </div>
                     </div>
                  </div>
