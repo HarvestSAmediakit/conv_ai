@@ -23,9 +23,43 @@ import {
   Cpu,
   FileJson,
   BookOpen,
+  Rocket,
+  TrendingUp,
+  Palette,
+  LayoutGrid,
+  Smartphone,
+  Trophy,
+  Mic,
+  CreditCard,
+  Activity,
+  Users,
+  Compass,
+  Target,
+  PenTool,
+  ShoppingBag,
+  Network
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { pdfjs } from "react-pdf";
+import AIAssetMarketplace from "./enterprise/AIAssetMarketplace";
+import EnterpriseKnowledgeHub from "./enterprise/EnterpriseKnowledgeHub";
+import DigitalEcosystemGenerator from "./enterprise/DigitalEcosystemGenerator";
+import PublisherSetupWizard from "./enterprise/PublisherSetupWizard";
+import RevenueIntelligence from "./enterprise/RevenueIntelligence";
+import AIContentStudio from "./enterprise/AIContentStudio";
+import WhiteLabelConfig from "./enterprise/WhiteLabelConfig";
+import MobileAppGenerator from "./enterprise/MobileAppGenerator";
+import MarketplaceBilling from "./enterprise/MarketplaceBilling";
+import PublisherSuccess from "./enterprise/PublisherSuccess";
+import LiveAILounge from "./enterprise/LiveAILounge";
+import SystemMonitoring from "./enterprise/SystemMonitoring";
+import LeadVault from "./enterprise/LeadVault";
+import AIRecommendationEngine from "./enterprise/AIRecommendationEngine";
+import EnterpriseSSOConfig from "./enterprise/EnterpriseSSOConfig";
+import AdvertiserIntelHub from "./enterprise/AdvertiserIntelHub";
+import EditorialAITuning from "./enterprise/EditorialAITuning";
+import AgentStore from "./enterprise/AgentStore";
+import PublisherExchange from "./enterprise/PublisherExchange";
 
 export default function PublisherDashboard() {
   const navigate = useNavigate();
@@ -1008,10 +1042,15 @@ This publication contains live, interactive text layouts, custom speech soundsca
             <nav className="space-y-1.5 flex-1">
               {[
                 { id: "magazines", label: "My Publications", icon: Upload },
-                { id: "analytics", label: "Analytics", icon: BarChart3 },
-                { id: "heyzine", label: "In-App Flipbook Studio", icon: BookOpen },
-                { id: "bookshelves", label: "Library Shells", icon: FileText },
-                { id: "settings", label: "Admin Settings", icon: Settings },
+                { id: "wizard", label: "Launch Wizard", icon: Rocket },
+                { id: "revenue", label: "Revenue ROI", icon: TrendingUp },
+                { id: "billing", label: "Billing ROI", icon: CreditCard },
+                { id: "studio", label: "Content Studio", icon: Sparkles },
+                { id: "branding", label: "White Label", icon: Palette },
+                { id: "success", label: "Success Plan", icon: Trophy },
+                { id: "live", label: "Live Lounge", icon: Mic },
+                { id: "mobile", label: "Mobile App", icon: Smartphone },
+                { id: "analytics", label: "Platform Analytics", icon: BarChart3 },
               ].map((item) => {
                 const isSelected = activeTab === item.id;
                 const IconComponent = item.icon;
@@ -1081,18 +1120,153 @@ This publication contains live, interactive text layouts, custom speech soundsca
         </div>
         <nav className="space-y-1 flex-1">
           <button
-            onClick={() => setActiveTab("magazines")}
-            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "magazines" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+          onClick={() => setActiveTab("magazines")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "magazines" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Upload size={18} className={activeTab === "magazines" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">My Publications</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("wizard")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "wizard" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Rocket size={18} className={activeTab === "wizard" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Launch Wizard</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("revenue")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "revenue" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <TrendingUp size={18} className={activeTab === "revenue" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Revenue ROI</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("billing")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "billing" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <CreditCard size={18} className={activeTab === "billing" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Billing ROI</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("studio")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "studio" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Sparkles size={18} className={activeTab === "studio" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Content Studio</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("branding")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "branding" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Palette size={18} className={activeTab === "branding" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">White Label</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("success")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "success" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Trophy size={18} className={activeTab === "success" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Success Plan</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("store")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "store" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <ShoppingBag size={18} className={activeTab === "store" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Agent Store</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("exchange")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "exchange" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Network size={18} className={activeTab === "exchange" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Network Exchange</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("tuning")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "tuning" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <PenTool size={18} className={activeTab === "tuning" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">AI Tuning</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("sso")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "sso" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Shield size={18} className={activeTab === "sso" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Enterprise SSO</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("ads")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "ads" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Target size={18} className={activeTab === "ads" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Advertiser Intel</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("live")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "live" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Mic size={18} className={activeTab === "live" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Live Lounge</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("intel")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "intel" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Compass size={18} className={activeTab === "intel" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Audience Intel</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("leads")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "leads" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Users size={18} className={activeTab === "leads" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Lead Vault</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("mobile")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "mobile" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Smartphone size={18} className={activeTab === "mobile" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">Mobile App</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("monitor")}
+          className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "monitor" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+        >
+          <Activity size={18} className={activeTab === "monitor" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+          <span className="text-sm font-medium">System Health</span>
+        </button>
+          <button
+            onClick={() => setActiveTab("knowledge")}
+            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "knowledge" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
           >
-            <Upload size={18} className={activeTab === "magazines" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
-            <span className="text-sm font-medium">My Publications</span>
+            <FileText size={18} className={activeTab === "knowledge" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+            <span className="text-sm font-medium">Knowledge Hub</span>
           </button>
           <button
-            onClick={() => setActiveTab("analytics")}
-            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "analytics" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
+            onClick={() => setActiveTab("marketplace")}
+            className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 group border cursor-pointer ${activeTab === "marketplace" ? "bg-[#00c896]/5 text-gray-100 border-[#00c896]/20 font-medium" : "text-zinc-500 hover:text-[#00c896] hover:bg-[#0A0A0A]/50 border-transparent"}`}
           >
-            <BarChart3 size={18} className={activeTab === "analytics" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
-            <span className="text-sm font-medium">Analytics</span>
+            <LayoutGrid size={18} className={activeTab === "marketplace" ? "text-[#00c896]" : "text-zinc-400 group-hover:text-[#00c896]"} /> 
+            <span className="text-sm font-medium">Agent Marketplace</span>
           </button>
           <button
             onClick={() => setActiveTab("heyzine")}
@@ -1416,6 +1590,11 @@ This publication contains live, interactive text layouts, custom speech soundsca
                         </div>
                       </div>
 
+                      <div className="mt-4 mb-6 pt-4 border-t border-white/5">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#00c896] mb-3">CONVOMAG AI ECOSYSTEM</div>
+                        <DigitalEcosystemGenerator magId={mag.id} />
+                      </div>
+
                       <div className="mt-auto flex flex-col gap-2.5">
                         {mag.status === "published" && (
                           <div className="flex gap-2.5">
@@ -1559,7 +1738,7 @@ This publication contains live, interactive text layouts, custom speech soundsca
           </div>
         )}
 
-        {activeTab === "bookshelves" && (
+         {activeTab === "bookshelves" && (
           <div>
              <h1 className="text-3xl font-black tracking-tight text-zinc-950 font-sans mb-6 border-b border-white/10/60 pb-6">Bookshelves</h1>
              <button onClick={async () => {
@@ -1582,6 +1761,78 @@ This publication contains live, interactive text layouts, custom speech soundsca
                 ))}
              </div>
           </div>
+        )}
+
+        {activeTab === "wizard" && (
+           <PublisherSetupWizard onComplete={() => setActiveTab("magazines")} />
+        )}
+
+        {activeTab === "revenue" && (
+           <RevenueIntelligence />
+        )}
+
+        {activeTab === "studio" && (
+           <AIContentStudio magazineId="mag_1" magazineTitle="Harvest SA" />
+        )}
+
+        {activeTab === "branding" && (
+           <WhiteLabelConfig />
+        )}
+
+        {activeTab === "store" && (
+           <AgentStore />
+        )}
+
+        {activeTab === "exchange" && (
+           <PublisherExchange />
+        )}
+
+        {activeTab === "mobile" && (
+           <MobileAppGenerator />
+        )}
+
+        {activeTab === "tuning" && (
+           <EditorialAITuning />
+        )}
+
+        {activeTab === "sso" && (
+           <EnterpriseSSOConfig />
+        )}
+
+        {activeTab === "ads" && (
+           <AdvertiserIntelHub />
+        )}
+
+        {activeTab === "billing" && (
+           <MarketplaceBilling />
+        )}
+
+        {activeTab === "success" && (
+           <PublisherSuccess />
+        )}
+
+        {activeTab === "live" && (
+           <LiveAILounge />
+        )}
+
+        {activeTab === "monitor" && (
+           <SystemMonitoring />
+        )}
+
+        {activeTab === "leads" && (
+           <LeadVault />
+        )}
+
+        {activeTab === "intel" && (
+           <AIRecommendationEngine />
+        )}
+
+        {activeTab === "knowledge" && (
+           <EnterpriseKnowledgeHub />
+        )}
+
+        {activeTab === "marketplace" && (
+           <AIAssetMarketplace />
         )}
 
         {activeTab === "settings" && (

@@ -21,6 +21,8 @@ interface MagazineFlipbookProps {
   pagesUrls: string[]; // High-fidelity raster pages representing index layers
 }
 
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+
 export const MagazineFlipbook: React.FC<MagazineFlipbookProps> = ({ documentId, pagesUrls }) => {
   const bookRef = useRef<any>(null);
   const canvasRefs = useRef<Array<HTMLCanvasElement | null>>([]);
@@ -56,17 +58,11 @@ export const MagazineFlipbook: React.FC<MagazineFlipbookProps> = ({ documentId, 
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      const canvasBounds = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / canvasBounds.width;
-      const scaleY = canvas.height / canvasBounds.height;
-
       // Extract coordinates: [left, bottom, right, top] in PDF points
       const [left, bottom, right, top] = cit.boundingBox;
 
-      // Normalize PDF coordinate systems (792 points standard height)
-      // Note: Coordinates in PDF usually have origin at bottom-left.
-      // We convert to canvas coordinate system (top-left).
-      const x = left * (canvas.width / 612); // Assuming 612 standard point width
+      // Normalize PDF coordinate systems (using assumed 612x792, but improved logic could detect)
+      const x = left * (canvas.width / 612); 
       const y = (792 - top) * (canvas.height / 792); 
       const width = (right - left) * (canvas.width / 612);
       const height = (top - bottom) * (canvas.height / 792);
@@ -134,55 +130,82 @@ export const MagazineFlipbook: React.FC<MagazineFlipbookProps> = ({ documentId, 
     <div className="flex h-screen w-full bg-neutral-900 text-white overflow-hidden">
       {/* 3D Page Render Canvas Block */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-        <button
-          onClick={() => { setActiveCitations([]); clearCanvasDrawings(); }}
-          className="absolute top-4 left-4 bg-neutral-800 hover:bg-neutral-750 px-4 py-2 text-sm rounded shadow z-50"
-        >
-          Clear Overlays
-        </button>
-
-        <div className="relative shadow-2xl rounded-lg overflow-hidden bg-neutral-950">
-          {/* @ts-ignore */}
-          <HTMLFlipBook
-            width={550}
-            height={750}
-            size="fixed"
-            minWidth={300}
-            maxWidth={800}
-            minHeight={400}
-            maxHeight={1100}
-            drawShadow={true}
-            flippingTime={1000}
-            usePortrait={true}
-            startZIndex={0}
-            autoSize={true}
-            maxShadowOpacity={0.6}
-            showCover={true}
-            mobileScrollSupport={true}
-            onFlip={handlePageSelection}
-            ref={bookRef}
-            className="book-canvas-wrap"
+        <div className="absolute top-4 left-4 z-50 flex gap-2">
+          <button
+            onClick={() => { setActiveCitations([]); clearCanvasDrawings(); }}
+            className="bg-neutral-800 hover:bg-neutral-700 px-4 py-2 text-xs font-bold rounded shadow border border-zinc-700"
           >
-            {pagesUrls.map((url, index) => (
-              <div key={index} className="relative w-full h-full bg-white flex items-center justify-center shadow-lg">
-                <img
-                  src={url}
-                  alt={`Magazine page ${index + 1}`}
-                  className="w-full h-full object-cover select-none"
-                  draggable={false}
-                />
-                <canvas
-                  ref={(el) => { canvasRefs.current[index] = el; }}
-                  width={550}
-                  height={750}
-                  className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
-                />
-              </div>
-            ))}
-          </HTMLFlipBook>
+            Clear Overlays
+          </button>
         </div>
-        <div className="mt-4 text-sm text-neutral-400">
-          Showing Page {currentPageIndex + 1} of {pagesUrls.length}
+
+        <TransformWrapper
+          initialScale={1}
+          minScale={0.5}
+          maxScale={4}
+          centerOnInit={true}
+        >
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+                <button onClick={() => zoomOut()} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+                <button onClick={() => resetTransform()} className="p-2 hover:bg-white/10 rounded-full transition-colors text-xs font-bold px-3">
+                  RESET
+                </button>
+                <button onClick={() => zoomIn()} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+              </div>
+
+              <TransformComponent wrapperClass="!w-full !h-full" contentClass="flex items-center justify-center">
+                <div className="relative shadow-2xl rounded-lg overflow-hidden bg-neutral-950">
+                  {/* @ts-ignore */}
+                  <HTMLFlipBook
+                    width={550}
+                    height={750}
+                    size="fixed"
+                    minWidth={300}
+                    maxWidth={800}
+                    minHeight={400}
+                    maxHeight={1100}
+                    drawShadow={true}
+                    flippingTime={1000}
+                    usePortrait={true}
+                    startZIndex={0}
+                    autoSize={true}
+                    maxShadowOpacity={0.6}
+                    showCover={true}
+                    mobileScrollSupport={true}
+                    onFlip={handlePageSelection}
+                    ref={bookRef}
+                    className="book-canvas-wrap"
+                  >
+                    {pagesUrls.map((url, index) => (
+                      <div key={index} className="relative w-full h-full bg-white flex items-center justify-center shadow-lg">
+                        <img
+                          src={url}
+                          alt={`Magazine page ${index + 1}`}
+                          className="w-full h-full object-cover select-none"
+                          draggable={false}
+                        />
+                        <canvas
+                          ref={(el) => { canvasRefs.current[index] = el; }}
+                          width={550}
+                          height={750}
+                          className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
+                        />
+                      </div>
+                    ))}
+                  </HTMLFlipBook>
+                </div>
+              </TransformComponent>
+            </>
+          )}
+        </TransformWrapper>
+        <div className="mt-4 text-sm text-neutral-400 font-mono tracking-widest uppercase">
+          Page {currentPageIndex + 1} / {pagesUrls.length}
         </div>
       </div>
 

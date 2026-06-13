@@ -25,12 +25,14 @@ import {
   Send,
   Volume2,
   Trash2,
-  Settings
+  Settings,
+  ArrowRight
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PricingModal from './PricingModal';
 import CacheManagerModal from './CacheManagerModal';
+import GlobalSearchOverlay from './GlobalSearchOverlay';
 
 interface Publication {
   id: string;
@@ -74,6 +76,7 @@ export default function Marketplace() {
     }
   });
   const [isCacheManagerOpen, setIsCacheManagerOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const toggleOfflineDownload = (id: string) => {
     setOfflineMags(prev => {
@@ -314,64 +317,7 @@ export default function Marketplace() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-gray-100 pb-36 font-sans relative selection:bg-emerald-500/10 blueprint-grid">
-      
-      {/* Brand Header styled precisely like requested markup */}
-      <header className="sticky top-0 z-[120] bg-[#0A0A0A] border-b border-white/5 shadow-xs px-4 py-3.5 sm:py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          
-          {/* Left brand and layout hamburger */}
-          <div className="flex items-center space-x-3.5">
-            <button 
-              onClick={() => setShowSideDrawer(true)}
-              className="p-1.5 text-zinc-600 hover:text-gray-100 focus:outline-none transition-colors rounded-full hover:bg-[#1A1A1A]/10"
-              id="main-hamburger-menu"
-            >
-              <Menu size={22} />
-            </button>
-            
-            <div 
-              onClick={() => {
-                setActiveCategory(null);
-                setActiveFilterType('all');
-                setSearch('');
-              }}
-              className="flex items-center space-x-2 cursor-pointer group"
-            >
-              <div className="bg-[#00c896] h-10 w-10 rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-xs group-hover:scale-105 transition-all">
-                C
-              </div>
-              <span className="font-extrabold text-xl tracking-tight text-[#00c896] font-sans">
-                ConvoMag AI
-              </span>
-            </div>
-          </div>
-
-          {/* Header Action Circle Buttons */}
-          <div className="flex items-center space-x-2.5">
-            <button 
-              onClick={() => {
-                const searchEl = document.getElementById('catalog-search-input');
-                if (searchEl) searchEl.focus();
-              }}
-              className="w-10 h-10 rounded-full bg-[#f1f3f5] hover:bg-zinc-200 flex items-center justify-center text-zinc-300 transition"
-              title="Search stand"
-            >
-              <Search size={17} />
-            </button>
-
-            <button 
-              onClick={() => setShowPricing(true)}
-              className="w-10 h-10 rounded-full bg-[#f1f3f5] hover:bg-zinc-200 flex items-center justify-center text-zinc-300 transition"
-              title="User Account"
-            >
-              <User size={17} />
-            </button>
-          </div>
-
-        </div>
-      </header>
-
+    <div className="min-h-screen text-gray-100 pb-36 font-sans relative selection:bg-emerald-500/10 blueprint-grid">
       {/* Main Container depending on Tab Selection */}
       <AnimatePresence mode="wait">
         {activeTab === 'home' ? (
@@ -450,26 +396,24 @@ export default function Marketplace() {
 
             {/* SEARCH BOX WRAPPER */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-4">
-              <div className="relative">
-                <input
-                  id="catalog-search-input"
-                  type="text"
-                  className="w-full p-4 pl-12 border-none rounded-2xl text-xs bg-[#0A0A0A] shadow-xs focus:ring-2 focus:ring-[#00c896]/20 focus:outline-none focus:border-[#00c896] transition-all text-zinc-200 placeholder-zinc-400"
-                  placeholder="Search newspapers, magazines or agricultural reports..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-400">
+              <div 
+                className="relative cursor-pointer group"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <div className="w-full p-4 pl-12 rounded-2xl text-xs bg-[#0A0A0A] border border-white/5 shadow-xs transition-all text-zinc-400 flex items-center group-hover:border-white/10">
+                  Search across all publications, articles and reports...
+                </div>
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[#00c896]">
                   <Search size={16} />
                 </div>
-                {search && (
-                  <button 
-                    onClick={() => setSearch('')}
-                    className="absolute inset-y-0 right-4 flex items-center text-zinc-400 hover:text-zinc-300"
-                  >
-                    <X size={15} />
-                  </button>
-                )}
+                <div className="absolute inset-y-0 right-4 flex items-center gap-2 pointer-events-none">
+                  <span className="hidden sm:inline text-[9px] font-bold text-zinc-600 bg-white/5 px-2 py-0.5 rounded border border-white/5 tracking-widest uppercase">
+                     Platform Search
+                  </span>
+                  <div className="h-5 w-5 bg-indigo-500/10 rounded flex items-center justify-center text-indigo-500">
+                    <ArrowRight size={12} />
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -1333,184 +1277,14 @@ export default function Marketplace() {
         )}
       </AnimatePresence>
 
-      {/* Floating Bottom Nav precisely following layout styles (Home, Library, Create, Profile) */}
-      <nav className="fixed bottom-0 inset-x-0 bg-[#0A0A0A] border-t border-white/5-50/50 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] z-[140] py-3.5 px-4">
-        <div className="max-w-xl mx-auto flex items-center justify-around">
-          
-          <button 
-            onClick={() => {
-              setActiveTab('home');
-              setActiveCategory(null);
-              setActiveFilterType('all');
-              setSearch('');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className={`flex flex-col items-center justify-center space-y-1 transition ${
-              activeTab === 'home' ? 'text-[#00c896]' : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <BookOpen size={18} className={activeTab === 'home' ? 'stroke-[2.25]' : ''} />
-            <span className={`text-[10px] ${activeTab === 'home' ? 'font-bold' : 'font-medium'}`}>Home</span>
-          </button>
-
-          <button 
-            onClick={() => {
-              setActiveTab('library');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className={`flex flex-col items-center justify-center space-y-1 transition ${
-              activeTab === 'library' ? 'text-[#00c896]' : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <Bookmark size={18} className={activeTab === 'library' ? 'stroke-[2.25] text-[#00c896]' : ''} />
-            <span className={`text-[10px] ${activeTab === 'library' ? 'font-bold' : 'font-medium'}`}>Library</span>
-          </button>
-
-          <button 
-            onClick={() => navigate('/publish')}
-            className="flex flex-col items-center justify-center space-y-1 transition text-zinc-400 hover:text-zinc-200"
-          >
-            <LayoutDashboard size={18} />
-            <span className="text-[10px] font-medium text-zinc-500">Create</span>
-          </button>
-
-          <button 
-            onClick={() => setShowPricing(true)}
-            className="flex flex-col items-center justify-center space-y-1 transition text-zinc-400 hover:text-zinc-200"
-          >
-            <User size={18} />
-            <span className="text-[10px] font-medium text-zinc-500">Profile</span>
-          </button>
-
-        </div>
-      </nav>
-
-      {/* Slide Drawer navigation links (Main/Workspace side overlay) */}
-      <AnimatePresence>
-        {showSideDrawer && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowSideDrawer(false)}
-              className="fixed inset-0 bg-black z-[200]"
-            />
-
-            <motion.div 
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              className="fixed inset-y-0 left-0 w-72 bg-[#0A0A0A] shadow-2xl z-[210] flex flex-col p-6"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-2">
-                  <div className="bg-[#00c896] h-8 w-8 rounded-lg flex items-center justify-center text-white font-extrabold text-sm">
-                    C
-                  </div>
-                  <span className="font-extrabold tracking-tight text-md text-zinc-200">
-                    ConvoMag AI
-                  </span>
-                </div>
-                <button onClick={() => setShowSideDrawer(false)} className="text-zinc-400 hover:text-zinc-200">
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="flex-1 space-y-5">
-                <div className="text-[10px] font-extrabold tracking-widest text-[#00c896] uppercase">
-                  Navigate stand
-                </div>
-                
-                <button 
-                  onClick={() => {
-                    setActiveCategory(null);
-                    setActiveFilterType('all');
-                    setShowSideDrawer(false);
-                  }}
-                  className="w-full text-left font-bold text-sm text-zinc-300 hover:text-[#00c896] py-1 block"
-                >
-                  🏠 Curated Catalog Desk
-                </button>
-
-                <button 
-                  onClick={() => {
-                    navigate('/publish');
-                    setShowSideDrawer(false);
-                  }}
-                  className="w-full text-left font-bold text-sm text-zinc-300 hover:text-[#00c896] py-1 block"
-                >
-                  📂 Publisher Workspace
-                </button>
-
-                <button 
-                  onClick={() => {
-                    navigate('/remix');
-                    setShowSideDrawer(false);
-                  }}
-                  className="w-full text-left font-bold text-sm text-zinc-300 hover:text-[#00c896] py-1 block"
-                >
-                  🎙️ Voice Remix Sandbox
-                </button>
-
-                <div className="h-px bg-white/10 my-4" />
-
-                <div className="text-[10px] font-extrabold tracking-widest text-zinc-400 uppercase">
-                  Featured publications
-                </div>
-
-                <button 
-                  onClick={() => {
-                    navigate('/reader?pub=mag_1');
-                    setShowSideDrawer(false);
-                  }}
-                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-gray-100 block py-0.5 truncate"
-                >
-                  The Economist (AI Edition)
-                </button>
-
-                <button 
-                  onClick={() => {
-                    navigate('/reader?pub=mag_rs');
-                    setShowSideDrawer(false);
-                  }}
-                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-gray-100 block py-0.5 truncate"
-                >
-                  Rolling Stone Magazine
-                </button>
-
-                <button 
-                  onClick={() => {
-                    navigate('/reader?pub=paper_wsj');
-                    setShowSideDrawer(false);
-                  }}
-                  className="w-full text-left text-xs font-semibold text-zinc-600 hover:text-gray-100 block py-0.5 truncate"
-                >
-                  The Wall Street Journal
-                </button>
-              </div>
-
-              <div className="border-t border-white/5 pt-5 text-[10px] font-mono text-zinc-400 mt-auto">
-                <p>Curated Design Calibrations</p>
-                <p className="mt-1">© {new Date().getFullYear()} ConvoMag Project</p>
-              </div>
-
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <footer className="border-t border-white/10 bg-[#0A0A0A] py-10 mt-12 mb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <div className="bg-zinc-200 text-zinc-500 font-bold p-1 rounded text-xs">CM</div>
-            <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">ConvoMag AI Catalog</span>
-          </div>
-          <span className="text-xs text-zinc-400">Curated Atmosphere Calibrations Complete. Safe Reader-Ready.</span>
-        </div>
-      </footer>
-
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
+      
+      {isSearchOpen && (
+        <GlobalSearchOverlay 
+          isOpen={isSearchOpen} 
+          onClose={() => setIsSearchOpen(false)} 
+        />
+      )}
     </div>
   );
 }

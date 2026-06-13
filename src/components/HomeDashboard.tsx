@@ -24,83 +24,8 @@ export default function HomeDashboard() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-gray-100 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
-      {/* Sidebar Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 bg-black/60 z-50 backdrop-blur-md"
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-              className="fixed top-0 left-0 bottom-0 w-72 bg-zinc-900/90 backdrop-blur-xl border-r border-white/10 z-50 flex flex-col"
-            >
-              <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                <span className="font-bold text-xl tracking-tight text-white">ConvoMag<span className="text-indigo-400">AI</span></span>
-                <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-zinc-400 hover:text-white">
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto py-6">
-                <nav className="space-y-2 px-4">
-                  {[
-                    { to: "/home", icon: Home, label: "Home" },
-                    { to: "/hub", icon: LayoutGrid, label: "Library" },
-                    { to: "/publish", icon: PenTool, label: "Publication Studio" },
-                    { to: "/reader", icon: FileText, label: "Smart Reader" },
-                    { to: "/analytics", icon: BarChart, label: "Metrics & Analytics" },
-                    { to: "/advertiser", icon: BarChart, label: "Sponsor Hub" },
-                    { to: "/admin", icon: Settings, label: "System Setup" },
-                  ].map((item, idx) => (
-                    <Link
-                      key={idx}
-                      to={item.to}
-                      className="flex items-center gap-4 px-4 py-3 text-zinc-300 hover:text-white hover:bg-white/5 rounded-2xl transition-all group"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <item.icon size={20} className="group-hover:text-indigo-400 transition-colors" /> 
-                      <span className="font-medium tracking-wide">{item.label}</span>
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Glass Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-[#050505]/70 backdrop-blur-2xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <button onClick={() => setIsMenuOpen(true)} className="text-zinc-300 hover:text-white transition-colors">
-              <Menu size={24} />
-            </button>
-            <Link to="/" className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-              ConvoMag<span className="text-indigo-400">AI</span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link to="/publish" className="hidden md:flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors">
-              <UploadCloud size={18} /> Studio
-            </Link>
-            <div className="w-px h-4 bg-white/20 mx-2 hidden md:block"></div>
-            <Link to="/hub" className="text-sm font-semibold bg-white text-black px-5 py-2.5 rounded-full hover:bg-zinc-200 transition-transform hover:scale-105 active:scale-95">
-              Explore Library
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="pt-32 pb-24">
+    <div className="min-h-screen text-gray-100 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
+      <main className="pt-8 pb-24">
         {/* 1. Cinematic Hero */}
         <section className="relative max-w-7xl mx-auto px-6 pt-16 pb-32 text-center">
           {/* Ambient Background Glow */}
@@ -129,16 +54,16 @@ export default function HomeDashboard() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/50 mb-8 max-w-5xl mx-auto leading-[1.1]"
           >
-            Every Document Deserves Intelligence.
+            The Operating System for Intelligent Publications.
           </motion.h1>
 
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-lg md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-12 leading-relaxed"
+            className="text-lg md:text-2xl text-zinc-400 max-w-4xl mx-auto mb-12 leading-relaxed"
           >
-            Upload any PDF. ConvoMag AI transforms magazines, reports, newspapers, research papers, and publications into conversational, voice-enabled experiences readers can explore, question, and listen to.
+            ConvoMag OS™ transforms static PDFs into complete digital ecosystems. Sign up, upload your document, and automatically generate conversational AI agents, websites, podcasts, and viral marketing assets in under 10 minutes.
           </motion.p>
 
           <motion.div 
@@ -178,9 +103,9 @@ export default function HomeDashboard() {
 
           <div className="grid lg:grid-cols-3 gap-8">
             {[
-              { title: "1. Upload", desc: "Drag and drop any standard PDF publication.", icon: UploadCloud, color: "from-blue-500/20 to-cyan-500/20", iconColor: "text-blue-400" },
-              { title: "2. Enrich", desc: "Gemini AI parses structure, context, imagery, and narratives.", icon: Sparkles, color: "from-indigo-500/20 to-purple-500/20", iconColor: "text-indigo-400" },
-              { title: "3. Publish", desc: "Instantly deploy an app-like experience across all devices.", icon: Play, color: "from-emerald-500/20 to-teal-500/20", iconColor: "text-emerald-400" }
+              { title: "1. Launch Wizard", desc: "Upload PDFs. Extracted brand kits and automated vertical configuration.", icon: UploadCloud, color: "from-blue-500/20 to-cyan-500/20", iconColor: "text-[#00c896]" },
+              { title: "2. Build Ecosystem", desc: "Instantly create interactive websites, podcasts, and social studio assets.", icon: Sparkles, color: "from-indigo-500/20 to-purple-500/20", iconColor: "text-purple-400" },
+              { title: "3. Scale Revenue", desc: "Monitor ROI, lead attribution, and AI engagement in 10 minutes.", icon: BarChart, color: "from-emerald-500/20 to-teal-500/20", iconColor: "text-emerald-400" }
             ].map((step, i) => (
               <div key={i} className="relative p-[1px] rounded-[32px] bg-gradient-to-b from-white/10 to-transparent hover:from-white/20 transition-colors group">
                 <div className="bg-[#0A0A0A] p-10 rounded-[31px] h-full overflow-hidden relative">

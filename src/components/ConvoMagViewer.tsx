@@ -226,6 +226,10 @@ const DrawingOverlay = ({ isDrawingMode, pageNumber, drawings, onUpdateDrawings,
 
 // @ts-ignore - react-pageflip doesn't have ideal TS types for the ref
 const FlipPage = React.forwardRef(({ pageNumber, width, height, overlayType, isDrawingMode, drawings, onUpdateDrawings }: { pageNumber: number, width: number, height: number, overlayType?: string | null, isDrawingMode: boolean, drawings: string[], onUpdateDrawings: (data: string[]) => void }, ref: any) => {
+  const isEven = pageNumber % 2 === 0;
+  const origin = isEven ? "right center" : "left center";
+  const initialRotate = isEven ? -10 : 10;
+
   return (
     <div 
       ref={ref} 
@@ -233,11 +237,11 @@ const FlipPage = React.forwardRef(({ pageNumber, width, height, overlayType, isD
       style={{ width: `${width}px`, height: `${height}px` }}
     >
       <motion.div
-        initial={{ opacity: 0, filter: "blur(4px)", rotateY: 15, z: -50, transformPerspective: 1200 }}
-        whileInView={{ opacity: 1, filter: "blur(0px)", rotateY: 0, z: 0 }}
+        initial={{ opacity: 0.9, rotateY: initialRotate, z: -25, transformPerspective: 1200 }}
+        whileInView={{ opacity: 1, rotateY: 0, z: 0 }}
         viewport={{ once: true, amount: 0.1 }}
-        transition={{ duration: 0.8, ease: "backOut" }}
-        style={{ transformOrigin: "left center" }}
+        transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
+        style={{ transformOrigin: origin, transformStyle: "preserve-3d" }}
         className="w-full h-full relative"
       >
         <DrawingOverlay 

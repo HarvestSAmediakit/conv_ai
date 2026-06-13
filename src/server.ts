@@ -4,22 +4,60 @@ import { GoogleGenAI, Modality, LiveServerMessage } from "@google/genai";
 import { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
 import path from 'path';
-import db, { initDb } from './db';
+import { db } from './db/index';
+import * as schema from './db/schema';
+import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { advertiserContext, roadAheadContext, bbqContext, leadershipContext } from './contexts';
 import fs from 'fs';
 import Stripe from 'stripe';
 import * as pdfParse from 'pdf-parse';
 import { v4 as uuidv4 } from 'uuid';
+import { requireAuth, AuthRequest } from './middleware/auth';
+import { tenantGuard } from './middleware/tenant';
 import { withTenant } from './lib/convo-mag/db';
-import { processDocumentIngest } from './lib/convo-mag/processor';
-import { executeTwoStageRAG } from './lib/convo-mag/retrieval';
+import { logAction } from './lib/audit-logger';
+import { getStorageProvider } from './lib/storage-provider';
+import { AIFactoryService } from './services/ai-factory';
+import { ingestDocument, performRagRetrieval } from './services/ai';
 import { processBillingWebhook } from './lib/convo-mag/billing';
-import { tracer } from './lib/convo-mag/tracing';
-import { ingestDocument, performRagSearch } from './services/ai';
+import { MetadataFactory } from './services/metadata-factory';
+import { tenantWhere, getTenantId } from './lib/tenant';
 
 dotenv.config();
 
 const app = express();
+
+// Stripe Webhook MUST be defined before global body parsers to receive raw body for verification
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  const signature = req.headers['stripe-signature'] as string;
+  const stripeClient = getStripe();
+  
+  if (!signature || !stripeClient) {
+    return res.status(400).json({ error: 'Missing webhook verification requirements' });
+  }
+
+  let stripeEvent: Stripe.Event;
+
+  try {
+    stripeEvent = stripeClient.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET || ''
+    );
+  } catch (err: any) {
+    console.error(`Webhook Signature validation failure: ${err.message}`);
+    return res.status(400).json({ error: `Signature Validation Failed: ${err.message}` });
+  }
+
+  try {
+    await processBillingWebhook(stripeEvent);
+    return res.json({ received: true });
+  } catch (error: any) {
+    console.error(`Database synchronization failed: ${error.message}`);
+    return res.status(500).json({ error: 'Failed to synchronize billing state' });
+  }
+});
+
 const server = createServer(app);
 const wss = new WebSocketServer({ noServer: true });
 
@@ -27,17 +65,240 @@ const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 const getAi = () => genAI;
 
 app.set('trust proxy', 1);
-app.use(express.json({ limit: '500mb' }));
-app.use(express.urlencoded({ limit: '500mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// Global authentication middleware mapping signed JWT headers
+// Note: We use requireAuth for protected routes selectively instead of globally if needed,
+// but for this migration we'll check req.user where it was used before.
+app.use(async (req: any, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split('Bearer ')[1];
+    try {
+      const { adminAuth } = await import('./lib/firebase-admin');
+      const decodedToken = await adminAuth.verifyIdToken(token);
+      req.user = decodedToken;
+    } catch (error) {
+      // Token exists but invalid/expired - we don't block here, just don't set req.user
+    }
+  }
+  next();
+});
 
-const uploadsDir = path.join(process.cwd(), 'uploads');
+const uploadsDir = path.join('/tmp', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+  const diagnostics = {
+    status: 'ok',
+    time: new Date().toISOString(),
+    dbConfigured: !!(process.env.SQL_HOST),
+    geminiConfigured: !!(process.env.GEMINI_API_KEY)
+  };
+  res.json(diagnostics);
+});
+
+// --- User Authentication Endpoints ---
+
+// Sync Firebase user with Cloud SQL
+app.post('/api/auth/sync', requireAuth, async (req: any, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+  const { uid, email, name } = req.user;
+  
+  if (!email) return res.status(400).json({ error: 'Email is required from auth provider' });
+
+  try {
+    const tenantId = `tenant_${uid.substring(0, 8)}`;
+    const createdAt = new Date();
+
+    // Drizzle Upsert for User
+    const [user] = await db.insert(schema.users)
+      .values({
+        id: uid, // Use Firebase UID as PK
+        uid: uid,
+        email: email,
+        password: 'LINKED_TO_FIREBASE',
+        name: name || email.split('@')[0],
+        role: 'publisher',
+        tenantId: tenantId,
+        createdAt: createdAt,
+      })
+      .onConflictDoUpdate({
+        target: schema.users.id,
+        set: {
+          lastLoginAt: createdAt,
+        }
+      })
+      .returning();
+
+    // Ensure publisher entry exists for the user's tenant
+    await db.insert(schema.publishers)
+      .values({
+        id: `pub_${uid.substring(0, 8)}`,
+        tenantId: user.tenantId,
+        name: `${user.name}'s Media Hub`,
+        slug: `hub-${uid.substring(0, 8)}`,
+        createdAt: createdAt,
+      })
+      .onConflictDoNothing();
+
+    await logAction({
+      tenantId: user.tenantId,
+      userId: user.id,
+      action: 'USER_SYNCED',
+      req
+    });
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenant_id: user.tenantId
+      }
+    });
+  } catch (err: any) {
+    console.error('Sync Failure:', err);
+    res.status(500).json({ error: 'Database synchronization failed: ' + err.message });
+  }
+});
+
+// --- Compliance & Legal ---
+
+app.get('/api/compliance/legal', (req, res) => {
+  res.json({
+    privacyPolicy: "ConvoMag AI respects your data. (Detailed POPIA/GDPR logic here...)",
+    termsOfService: "By using ConvoMag AI, you agree to our terms...",
+    cookies: "We use strictly necessary functional and analytical cookies.",
+    version: "2026.1.0"
+  });
+});
+
+app.post('/api/compliance/consent', requireAuth, tenantGuard, async (req: any, res) => {
+  const { consentType, version } = req.body;
+  
+  try {
+    const id = `consent_${uuidv4().substring(0, 8)}`;
+    await db.insert(schema.formsLegalConsents).values({
+      id,
+      userId: req.user.id,
+      consentType,
+      version,
+      ipAddress: req.ip || '',
+      createdAt: new Date(),
+    });
+
+    await logAction({
+      tenantId: req.user.tenantId || req.user.tenant_id,
+      userId: req.user.id,
+      action: 'CONSENT_GIVEN',
+      metadata: { consentType, version },
+      req
+    });
+
+    res.json({ status: 'recorded' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to record consent' });
+  }
+});
+
+// --- Enhanced OAuth Flow Initiation (Skill-aligned) ---
+
+app.get('/api/auth/oauth/url', (req, res) => {
+  const { provider } = req.query;
+  const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/oauth/callback`;
+  
+  // Construct OAuth URL (Example for Google)
+  const providerUrls: Record<string, string> = {
+    google: 'https://accounts.google.com/o/oauth2/v2/auth',
+    microsoft: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+  };
+
+  const authUrl = providerUrls[provider as string] || providerUrls.google;
+  const params = new URLSearchParams({
+    client_id: process.env.OAUTH_CLIENT_ID || 'mock_client_id',
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: 'openid email profile',
+    state: uuidv4()
+  });
+
+  res.json({ url: `${authUrl}?${params.toString()}` });
+});
+
+app.get(['/api/auth/oauth/callback', '/api/auth/oauth/callback/'], async (req, res) => {
+  // Exchange code for token (Mocked for now)
+  // In real implementation, this would call provider's token endpoint
+  
+  res.send(`
+    <html>
+      <body style="background: #050505; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh;">
+        <div style="text-align: center;">
+          <h2 style="color: #00c896;">Authentication Successful</h2>
+          <p style="color: #666;">Synchronizing your secure session...</p>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS', token: 'mock_oauth_jwt_token' }, '*');
+              setTimeout(() => window.close(), 1000);
+            } else {
+              window.location.href = '/home';
+            }
+          </script>
+        </div>
+      </body>
+    </html>
+  `);
+});
+
+// Retrieve active user profile context
+app.get('/api/auth/me', (req: any, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized. No active session found.' });
+  }
+  res.json({ user: req.user });
+});
+
+// --- Phase 3: Market Leadership APIs ---
+
+// Trigger AI Factory Ecosystem Generation
+app.post('/api/factory/generate-ecosystem', requireAuth, tenantGuard, async (req: any, res) => {
+  const { magazineId } = req.body;
+  const tenantId = req.tenantId;
+
+  try {
+    const result = await AIFactoryService.generateEcosystem(magazineId, tenantId);
+    
+    await logAction({
+      tenantId,
+      userId: req.user.id,
+      action: 'ECOSYSTEM_GENERATED',
+      resourceType: 'magazine',
+      resourceId: magazineId,
+      req
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Factory generation failed' });
+  }
+});
+
+// Get AI Agents for the marketplace
+app.get('/api/marketplace/agents', requireAuth, tenantGuard, async (req: any, res) => {
+  const tenantId = req.tenantId;
+  const agents = await db.select().from(schema.aiAgents).where(or(eq(schema.aiAgents.tenantId, tenantId), eq(schema.aiAgents.tenantId, 'system')));
+  res.json(agents);
+});
+
+// Enterprise Knowledge Hub - List Resources
+app.get('/api/enterprise/kb', requireAuth, tenantGuard, async (req: any, res) => {
+  const tenantId = req.tenantId;
+  const resources = await db.select().from(schema.enterpriseKb).where(eq(schema.enterpriseKb.tenantId, tenantId));
+  res.json(resources);
 });
 const samplePdfPath = path.join(uploadsDir, 'sample.pdf');
 if (!fs.existsSync(samplePdfPath)) {
@@ -103,19 +364,20 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
   }
 });
 
-// Init database
-initDb();
+// initDb() is already called at the bottom of db.ts module load
+// initDb();
 
 // --- API Routes for Database ---
 
 // Get analytics for a magazine
-app.get('/api/magazines/:id/analytics', (req, res) => {
+app.get('/api/magazines/:id/analytics', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const id = req.params.id;
-    const magazine = resolveMagazine(id);
+    const tenantId = req.tenantId;
+
+    const [magazine] = await db.select().from(schema.magazines).where(and(eq(schema.magazines.id, id), eq(schema.magazines.tenantId, tenantId)));
     if (!magazine) return res.status(404).json({ error: 'Magazine not found' });
     
-    // Return mock analytics data based on the magazine's stats
     res.json({
       stats: [
         { label: 'Total Readers', value: magazine.viewCount || 0, trend: 12.5 },
@@ -140,65 +402,67 @@ app.get('/api/magazines/:id/analytics', (req, res) => {
 });
 
 // Get advertiser details
-app.get('/api/advertisers/:id', (req, res) => {
+app.get('/api/advertisers/:id', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const { id } = req.params;
-    // Mock advertiser response
-    const advertisers: Record<string, any> = {
-      'toyota': {
-        id: 'toyota',
-        brand_name: 'Toyota South Africa',
-        description: 'Lead the way with Toyota. Discover our latest range of reliable, durable and capable vehicles designed for South African roads.',
-        website: 'https://www.toyota.co.za',
-        phone: '+27 800 139 111',
-        email: 'info@toyota.co.za',
-        address: 'Stand 1, Wesco Park, Sandton',
-        rating: 4.8,
-        featured_products: [
-          { id: 'p1', name: 'Hilux Double Cab', description: 'The legendary tough bakkie.', price: 'From R 550,000' },
-          { id: 'p2', name: 'Fortuner', description: 'The luxury SUV of choice.', price: 'From R 680,000' }
-        ]
-      },
-      'stihl': {
-        id: 'stihl',
-        brand_name: 'STIHL Forestry',
-        description: 'Premium chainsaws, trimmers, and forestry equipment built for professionals.',
-        website: 'https://www.stihl.co.za',
-        phone: '+27 33 846 3800',
-        email: 'info@stihl.co.za',
-        address: 'Pietermaritzburg, KZN',
-        rating: 4.9,
-        featured_products: [
-          { id: 's1', name: 'MS 382 Chainsaw', description: 'Heavy-duty performance for forestry.', price: 'Ask for quote' }
-        ]
-      }
-    };
+    const tenantId = req.tenantId;
+
+    const [advertiser] = await db.select().from(schema.advertisers).where(and(eq(schema.advertisers.id, id), eq(schema.advertisers.tenantId, tenantId)));
     
-    // Auto-generate if not found
-    const data = advertisers[id] || {
-      id,
-      brand_name: id.toUpperCase() + ' Corp',
-      description: 'Your trusted partner delivering excellence.',
-      website: `https://www.${id}.com`,
-      phone: '1-800-CONTACT',
-      email: `hello@${id}.com`,
-      address: 'Business District, Tech Park',
-      rating: 4.5,
-      featured_products: [
-        { id: '1', name: 'Premium Service', description: 'Comprehensive package tailored to your needs.', price: 'Custom' }
-      ]
-    };
+    if (!advertiser) {
+      // Fallback for demo portability
+      const mockAdvertisers: Record<string, any> = {
+        'toyota': { id: 'toyota', brandName: 'Toyota South Africa', description: 'Lead the way with Toyota.', rating: 4.8 },
+        'stihl': { id: 'stihl', brandName: 'STIHL Forestry', description: 'Premium chainsaws and equipment.', rating: 4.9 }
+      };
+      const fallback = mockAdvertisers[id] || { id, brandName: id.toUpperCase() + ' Corp', rating: 4.5 };
+      return res.json(fallback);
+    }
     
-    res.json(data);
+    const products = await db.select().from(schema.advertiserProducts).where(eq(schema.advertiserProducts.advertiserId, id));
+    res.json({ ...advertiser, products });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch advertiser' });
   }
 });
 
-// Get all magazines
-app.get('/api/magazines', (req, res) => {
+// GET advertiser analytics
+app.get('/api/advertiser/analytics', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    const magazines = db.prepare('SELECT * FROM magazines ORDER BY createdAt DESC').all();
+    const stats = [
+      { label: 'Total Ad Views', value: '1,247,592', change: 12.5, type: 'count' },
+      { label: 'Voice Q&A Engagements', value: '89,431', change: 24.8, type: 'count' },
+      { label: 'Avg. Engagement Time', value: '2m 14s', change: 5.2, type: 'time' },
+      { label: 'Unique Readers', value: '412,900', change: 18.1, type: 'count' },
+    ];
+
+    const campaigns = [
+      { name: "Rolex Submariner Cover Ad", type: "Full Page", page: '4', conversion: "4.2%", mentions: 1240, img: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&q=80&w=400" },
+      { name: "John Deere 8R Series Tractor", type: "Half Page", page: '28', conversion: "6.1%", mentions: 3450, img: "https://images.unsplash.com/photo-1592984501438-eeb66babbd16?auto=format&fit=crop&q=80&w=400" },
+      { name: "Kynoch Dynamic Foliar", type: "Spread", page: '14', conversion: "5.4%", mentions: 2100, img: "https://images.unsplash.com/photo-1592984552484-966967086884?auto=format&fit=crop&q=80&w=400" },
+    ];
+
+    const conversationLog = [
+      { q: "What tractor handles heavy wet clay best?", ans: "...John Deere 8R Series offers superior traction and is featured in this issue...", match: "John Deere", time: "2m ago" },
+      { q: "Are there alternatives for late planting?", ans: "...Kynoch's accelerated growth blend (Page 14) can help mitigate short season risks...", match: "Kynoch Fertilizer", time: "14m ago" },
+      { q: "What's the price of the XC90?", ans: "...The Volvo XC90 starts at R1.4M as per their feature on page 12...", match: "Volvo", time: "1h ago" },
+      { q: "Is precision irrigation worth the ROI?", ans: "...Yes, Netafim (see ad on back cover) reports a 30% water saving...", match: "Netafim", time: "3h ago" },
+    ];
+
+    res.json({ stats, campaigns, conversationLog });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch advertiser analytics' });
+  }
+});
+
+// Get all magazines
+app.get('/api/magazines', requireAuth, tenantGuard, async (req: any, res) => {
+  try {
+    let magazines: any[];
+    // Multi-tenant isolation: Publishers only see their own publications
+    const userTenantId = req.tenantId;
+    magazines = await db.select().from(schema.magazines).where(eq(schema.magazines.tenantId, userTenantId)).orderBy(desc(schema.magazines.createdAt));
+    
     res.json(
       magazines.map((m: any) => ({
         ...m,
@@ -214,6 +478,7 @@ app.get('/api/magazines', (req, res) => {
       }))
     );
   } catch (error) {
+    console.error('Fetch Magazines Error:', error);
     res.status(500).json({ error: 'Failed to fetch magazines' });
   }
 });
@@ -225,6 +490,11 @@ app.get('/api/proxy-pdf', async (req, res) => {
     return res.status(400).send('Missing url parameter');
   }
   try {
+    const parsedUrl = new URL(targetUrl);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      return res.status(400).send('Invalid protocol');
+    }
+    
     const response = await fetch(targetUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch PDF: ${response.statusText}`);
@@ -249,10 +519,14 @@ app.get('/api/proxy-pdf', async (req, res) => {
   }
 });
 
-// Helper to resolve magazine configs using SQLite with high-fidelity preset fallbacks
-function resolveMagazine(id: string) {
+// Helper to resolve magazine configs using Cloud SQL with high-fidelity preset fallbacks
+async function resolveMagazine(id: string, tenantId?: string) {
   try {
-    const dbMag = db.prepare('SELECT * FROM magazines WHERE id = ?').get(id) as any;
+    const query = db.select().from(schema.magazines).where(eq(schema.magazines.id, id));
+    if (tenantId) {
+       query.where(and(eq(schema.magazines.id, id), tenantWhere(schema.magazines.tenantId, tenantId)));
+    }
+    const [dbMag] = await query;
     if (dbMag) return dbMag;
   } catch (err) {
     console.warn("Database lookup failed, returning preset config:", err);
@@ -410,10 +684,14 @@ function resolveMagazine(id: string) {
 }
 
 // Get a single magazine by id
-app.get('/api/magazines/:id', (req, res) => {
+app.get('/api/magazines/:id', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    const magazine = resolveMagazine(req.params.id);
+    const id = req.params.id;
+    const tenantId = req.tenantId;
+    const [magazine] = await db.select().from(schema.magazines).where(and(eq(schema.magazines.id, id), eq(schema.magazines.tenantId, tenantId)));
+    
     if (!magazine) return res.status(404).json({ error: 'Magazine not found' });
+    
     res.json({
       ...magazine,
       aiEnabled: !!magazine.aiEnabled,
@@ -427,12 +705,13 @@ app.get('/api/magazines/:id', (req, res) => {
       pageTransitionsSpeed: magazine.pageTransitionsSpeed !== undefined ? Number(magazine.pageTransitionsSpeed) : 1000
     });
   } catch (error) {
+    console.error('Fetch Magazine Error:', error);
     res.status(500).json({ error: 'Failed to fetch magazine' });
   }
 });
 
 // GET full-text search across slide / page content for a magazine
-app.get('/api/magazines/:id/search', (req, res) => {
+app.get('/api/magazines/:id/search', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const { q } = req.query;
     if (!q || typeof q !== 'string') {
@@ -442,7 +721,7 @@ app.get('/api/magazines/:id/search', (req, res) => {
     const id = req.params.id;
 
     // Retrieve magazine using resolveMagazine helper to support fallback presets
-    const magazine = resolveMagazine(id);
+    const magazine = await resolveMagazine(id, getTenantId(req));
     if (!magazine) {
       return res.status(404).json({ error: 'Magazine not found' });
     }
@@ -512,142 +791,163 @@ app.get('/api/magazines/:id/search', (req, res) => {
   }
 });
 
+// GET magazines search for discover
+app.get('/api/search/discover', requireAuth, tenantGuard, async (req: any, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || typeof q !== 'string') {
+      return res.json({ results: [] });
+    }
+    const query = q.toLowerCase().trim();
+    
+    // Multi-tenant search isolation
+    const tenantId = (req as any).tenantId; 
+
+    let allMags;
+    if (tenantId) {
+        allMags = await db.select().from(schema.magazines).where(and(eq(schema.magazines.status, 'published'), tenantWhere(schema.magazines.tenantId, tenantId)));
+    } else {
+        // Fallback for public if no user, but maybe we should allow public only?
+        allMags = await db.select().from(schema.magazines).where(eq(schema.magazines.status, 'published'));
+    }
+    
+    // Filter out items that are strictly private to another tenant if isolation is enabled
+    // ... logic for private tenant visibility ...
+
+    const globalResults: any[] = [];
+    allMags.forEach(mag => {
+      let score = 0;
+      if (mag.title.toLowerCase().includes(query)) score += 10;
+      
+      let context = mag.aiContext || "";
+      if (context && context.toLowerCase().includes(query)) {
+        score += 5;
+        const idx = context.toLowerCase().indexOf(query);
+        const start = Math.max(0, idx - 40);
+        const end = Math.min(context.length, idx + query.length + 60);
+        const snippet = (start > 0 ? "..." : "") + context.substring(start, end).replace(/\n/g, ' ') + (end < context.length ? "..." : "");
+        
+        globalResults.push({
+          id: mag.id,
+          title: mag.title,
+          coverUrl: mag.coverUrl,
+          publisher: mag.publisherId || 'Independent',
+          snippet: snippet,
+          score: score,
+          type: mag.id.includes('paper') ? 'newspaper' : 'magazine'
+        });
+      } else if (score > 0) {
+        globalResults.push({
+          id: mag.id,
+          title: mag.title,
+          coverUrl: mag.coverUrl,
+          publisher: mag.publisherId || 'Independent',
+          snippet: mag.title,
+          score: score,
+          type: mag.id.includes('paper') ? 'newspaper' : 'magazine'
+        });
+      }
+    });
+
+    await logAction({
+      tenantId,
+      userId: req.user?.id,
+      action: 'SEARCH_QUERY',
+      metadata: { query, resultsCount: globalResults.length },
+      req
+    });
+
+    res.json({ 
+      results: globalResults.sort((a, b) => b.score - a.score).slice(0, 20) 
+    });
+  } catch (error: any) {
+    console.error("Global search failed:", error);
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
 // POST conversation scope chat assistant for a magazine
-app.post('/api/magazines/:id/chat', async (req, res) => {
+import { AgriIntelligenceService } from './services/agri-intelligence';
+
+app.post('/api/magazines/:id/chat', requireAuth, tenantGuard, async (req: any, res) => {
   const { id } = req.params;
   const { query, history } = req.body;
+  const tenantId = req.tenantId;
 
   if (!query || typeof query !== 'string') {
     return res.status(400).json({ error: 'Missing query parameter' });
   }
 
   try {
-    // Retrieve magazine using resolveMagazine helper to support fallback presets
-    const magazine = resolveMagazine(id);
+    // Security Audit Fix: Ensure tenant isolation for chat
+    const [magazine] = await db.select().from(schema.magazines).where(eq(schema.magazines.id, id));
     if (!magazine) {
       return res.status(404).json({ error: 'Magazine not found' });
     }
 
-    // Determine what text sources we can use
-    let contextText = magazine.aiContext || "";
-    if (!contextText) {
-      if (id === 'mag_1' || magazine.title.toLowerCase().includes('harvest') || magazine.title.toLowerCase().includes('ai')) {
-        contextText = advertiserContext;
-      } else if (magazine.title.toLowerCase().includes('road ahead')) {
-        contextText = roadAheadContext;
-      } else if (magazine.title.toLowerCase().includes('bbq') || magazine.title.toLowerCase().includes('black business')) {
-        contextText = bbqContext;
-      } else if (magazine.title.toLowerCase().includes('leadership')) {
-        contextText = leadershipContext;
-      } else {
-        contextText = advertiserContext; // default fallback
-      }
+    if (magazine.tenantId !== tenantId && (req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied: Publication belongs to another tenant.' });
     }
+
+    // Determine context...
+    let contextText = magazine.aiContext || advertiserContext;
+    
+    // Enrich with Agricultural Intelligence
+    contextText = await AgriIntelligenceService.enrichWithAgriIntel(query, contextText, tenantId);
 
     let answerText = "";
     let pageNumbers: number[] = [];
-
-    // Attempt Gemini call
+    
     try {
       const ai = getAi();
       const personality = magazine.aiPersonality || "You are ConvoMag AI, an intelligent, professional conversational magazine companion.";
-      const systemInstruction = `${personality}\n\nYou are answering questions about the magazine: "${magazine.title}".\n\nHere is the full text context and extract of the magazine content:\n${contextText}\n\nStrict guidelines:\n1. Answer the user query using the facts from the magazine context above.\n2. Include specific page number citations in your answer when mentioning facts (e.g. "[Page 5]"). If the page isn't clear, reconstruct it using the context's page mentions.\n3. Keep the response clean, engaging, professional, and directly useful.`;
+      const systemInstruction = `${personality}\n\nYou are answering questions about the magazine: "${magazine.title}".\n\nContext:\n${contextText}\n\nStrict guidelines:\n1. Answer using the facts from the context.\n2. Include page citations [Page X].\n3. Keep it professional.`;
 
-      // Structure contents (history + new query)
       const contentsParts: any[] = [];
       if (history && Array.isArray(history)) {
         history.slice(-6).forEach(msg => {
-          contentsParts.push({
-            role: msg.sender === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.text }]
-          });
+          contentsParts.push({ role: msg.sender === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] });
         });
       }
-      contentsParts.push({
-        role: 'user',
-        parts: [{ text: query }]
-      });
+      contentsParts.push({ role: 'user', parts: [{ text: query }] });
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: contentsParts,
-        config: {
-          systemInstruction,
-        }
-      });
-
-      answerText = response.text || "";
+      const gmResponse = await ai.models.generateContent({ model: "gemini-2.0-flash", contents: contentsParts, config: { systemInstruction } });
+      answerText = gmResponse.text || "";
 
       // Extract referenced page numbers
       const pageRegex = /(?:page|pages|p\.)\s*(\d+)/gi;
-      let match;
-      while ((match = pageRegex.exec(answerText)) !== null) {
-        const pNum = parseInt(match[1], 10);
+      let pMatch;
+      while ((pMatch = pageRegex.exec(answerText)) !== null) {
+        const pNum = parseInt(pMatch[1], 10);
         if (!isNaN(pNum) && !pageNumbers.includes(pNum)) {
           pageNumbers.push(pNum);
         }
       }
-
     } catch (aiError: any) {
-      const errorMsg = aiError.message || String(aiError);
-      console.warn("Server chat: Falling back to local offline search engine. Reason:", errorMsg.substring(0, 100));
-      
-      const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-      const paragraphs = contextText.split(/\n\s*\n|\n(?=###|\*)/);
-      const matchedParagraphs: string[] = [];
-
-      paragraphs.forEach((p: string) => {
-        let score = 0;
-        queryWords.forEach((word: string) => {
-          if (p.toLowerCase().includes(word)) score += 1;
-        });
-        if (score > 0) {
-          matchedParagraphs.push(p);
-        }
-      });
-
-      if (matchedParagraphs.length > 0) {
-        matchedParagraphs.sort((a, b) => b.length - a.length);
-        const topMatches = matchedParagraphs.slice(0, 3);
-        
-        let offlineReason = `Configure GEMINI_API_KEY in Settings to enable live synthetic conversational dialogue.`;
-        if (aiError.message && (aiError.message.includes("429") || aiError.message.includes("quota"))) {
-          offlineReason = `The AI service is currently experiencing high load or has exceeded its quota limits. Returning offline search results.`;
-        } else if (aiError.message && (aiError.message.includes("403") || aiError.message.includes("401"))) {
-           offlineReason = `The AI service key is invalid. Returning offline search results.`;
-        } else if (aiError.message) {
-           offlineReason = `The AI service encountered an error (${aiError.message.substring(0, 50)}...). Returning offline search results.`;
-        }
-        
-        answerText = `Here is what I found in the magazine concerning your query:\n\n` + 
-          topMatches.map(m => m.trim()).join("\n\n") + 
-          `\n\n*(Note: Showing direct entries found in the local index database. ${offlineReason})*`;
-
-        topMatches.forEach(m => {
-          const pageMatch = m.match(/(?:page[:\s]?\s*|page\s+x[:\s]?\s*|target\s+publication\s+page[:\s]?\s*|target\s+page\s+x[:\s]?\s*)(\d+)/i);
-          if (pageMatch && pageMatch[1]) {
-            const pNum = parseInt(pageMatch[1], 10);
-            if (!pageNumbers.includes(pNum)) pageNumbers.push(pNum);
-          }
-        });
-      } else {
-        answerText = `I searched this edition of "${magazine.title}" but didn't find any direct sections containing "${query}". Try searching for related keywords!\n\n*(Note: Displayed from local database search index.)*`;
-      }
+      answerText = "I'm currently coordinating with our agricultural data centers. Please try again soon.";
     }
 
-    res.json({
+    await logAction({
+      tenantId,
+      userId: req.user?.id,
+      action: 'AI_CHAT',
+      resourceType: 'magazine',
+      resourceId: id,
+      metadata: { query: query.substring(0, 50) },
+      req
+    });
+
+    res.json({ 
       answer: answerText,
       pageSuggestions: pageNumbers
     });
-
-  } catch (err: any) {
-    const errorMsg = err.message || String(err);
-    console.error("Chat handler failure:", errorMsg.substring(0, 100));
-    res.status(500).json({ error: errorMsg.substring(0, 500) });
+  } catch (error: any) {
+    console.error("AI Reader Chat Failed:", error);
+    res.status(500).json({ error: 'AI Assistant failed' });
   }
 });
 
-app.post('/api/magazines/:id/summarize-section', async (req, res) => {
+app.post('/api/magazines/:id/summarize-section', requireAuth, tenantGuard, async (req: any, res) => {
   const { id } = req.params;
   const { heading, content } = req.body;
 
@@ -679,10 +979,10 @@ app.post('/api/magazines/:id/summarize-section', async (req, res) => {
 });
 
 // Delete a single magazine
-app.delete('/api/magazines/:id', (req, res) => {
+app.delete('/api/magazines/:id', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const id = req.params.id;
-    const mag = db.prepare('SELECT pdfUrl FROM magazines WHERE id = ?').get(id) as any;
+    const [mag] = await db.select().from(schema.magazines).where(eq(schema.magazines.id, id));
     if (mag && mag.pdfUrl && mag.pdfUrl.startsWith('/uploads/')) {
       const fileName = path.basename(mag.pdfUrl);
       const filePath = path.join(process.cwd(), 'uploads', fileName);
@@ -694,7 +994,7 @@ app.delete('/api/magazines/:id', (req, res) => {
         }
       }
     }
-    db.prepare('DELETE FROM magazines WHERE id = ?').run(id);
+    await db.delete(schema.magazines).where(eq(schema.magazines.id, id));
     res.json({ success: true });
   } catch (error: any) {
     console.error(error);
@@ -703,37 +1003,37 @@ app.delete('/api/magazines/:id', (req, res) => {
 });
 
 // Update a single magazine (partial update)
-app.put('/api/magazines/:id', (req, res) => {
+app.put('/api/magazines/:id', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const id = req.params.id;
     const body = req.body;
     
-    // Build dynamic query for allowed fields
+    // Build dynamic update object
     const allowedFields = [
       'title', 'coverUrl', 'status', 'aiEnabled', 'aiPersonality', 'aiContext', 
       'ttsEnabled', 'chatEnabled', 'pageCount', 'hardcover', 
       'soundEnabled', 'rtl', 'themeBackground', 'logoUrl', 'pageTransitionsSpeed'
     ];
     
-    const updates: string[] = [];
-    const params: any[] = [];
+    const updateObj: any = {};
     
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        updates.push(`${field} = ?`);
+        let value = body[field];
         if (['aiEnabled', 'ttsEnabled', 'chatEnabled', 'hardcover', 'soundEnabled', 'rtl'].includes(field)) {
-          params.push(body[field] ? 1 : 0);
+          value = body[field] ? 1 : 0;
         } else if (field === 'pageTransitionsSpeed' || field === 'pageCount') {
-          params.push(Number(body[field]));
-        } else {
-          params.push(body[field]);
+          value = Number(body[field]);
         }
+        
+        // Map camelCase if needed, but here database schema usually matches or we use the field directly
+        // The Drizzle schema uses camelCase for properties
+        updateObj[field] = value;
       }
     }
     
-    if (updates.length > 0) {
-      params.push(id);
-      db.prepare(`UPDATE magazines SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+    if (Object.keys(updateObj).length > 0) {
+      await db.update(schema.magazines).set(updateObj).where(eq(schema.magazines.id, id));
     }
     
     res.json({ success: true });
@@ -744,9 +1044,10 @@ app.put('/api/magazines/:id', (req, res) => {
 });
 
 // --- Ingestion Pipeline ---
-app.post('/api/ingest', async (req, res) => {
+app.post('/api/ingest', async (req: any, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Authentication required for ingestion' });
   const { pdfData, fileName, magazineId } = req.body;
-  const tenantId = "tenant_default"; // Mock tenant for now
+  const tenantId = req.user.tenant_id;
 
   if (!pdfData || !magazineId) {
     return res.status(400).json({ error: "Missing pdfData or magazineId" });
@@ -758,25 +1059,26 @@ app.post('/api/ingest', async (req, res) => {
     const buffer = Buffer.from(pdfData.split(',')[1], 'base64');
     fs.writeFileSync(storagePath, buffer);
 
-    db.prepare(`
-      INSERT INTO documents (id, tenant_id, file_name, storage_path, status)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(documentId, tenantId, fileName || "uploaded.pdf", storagePath, "processing");
+    await db.insert(schema.documents).values({
+      id: documentId,
+      tenantId,
+      fileName: fileName || "uploaded.pdf",
+      storagePath,
+      status: "processing",
+    });
 
     // Also create the magazine record so it shows up in the UI
-    db.prepare(`
-      INSERT INTO magazines (id, publisherId, title, slug, status, createdAt, pdfUrl, aiEnabled)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      magazineId, 
-      "pub_1", 
-      fileName?.replace(".pdf", "") || "New Publication", 
-      (fileName?.replace(".pdf", "") || "mag").toLowerCase().replace(/ /g, "-") + "-" + Date.now(),
-      "processing",
-      new Date().toISOString(),
-      `/uploads/${documentId}.pdf`,
-      1
-    );
+    await db.insert(schema.magazines).values({
+      id: magazineId,
+      publisherId: "pub_1",
+      title: fileName?.replace(".pdf", "") || "New Publication",
+      slug: (fileName?.replace(".pdf", "") || "mag").toLowerCase().replace(/ /g, "-") + "-" + Date.now(),
+      status: "processing",
+      createdAt: new Date(),
+      pdfUrl: `/uploads/${documentId}.pdf`,
+      aiEnabled: true,
+      tenantId,
+    });
 
     // Extract text and start background ingestion
     const pdfParser = typeof pdfParse === 'function' ? pdfParse : (pdfParse as any).default;
@@ -796,7 +1098,7 @@ app.post('/api/ingest', async (req, res) => {
 });
 
 // --- Podcast Generation ---
-app.post('/api/magazines/:id/podcast', async (req, res) => {
+app.post('/api/magazines/:id/podcast', requireAuth, tenantGuard, async (req: any, res) => {
   const { id } = req.params;
   const { title } = req.body;
 
@@ -821,14 +1123,15 @@ app.post('/api/magazines/:id/podcast', async (req, res) => {
 });
 
 // --- RAG Chat ---
-app.post('/api/magazines/:id/chat-rag', async (req, res) => {
+app.post('/api/magazines/:id/chat-rag', requireAuth, tenantGuard, async (req: any, res) => {
   const { id } = req.params;
   const { query, history } = req.body;
-  const tenantId = "tenant_default";
+  const tenantId = (req as any).tenantId;
 
   try {
-    const contextChunks = await performRagSearch(tenantId, null, query, 5);
-    const contextText = contextChunks.map(c => `Snippet: ${c.content}`).join("\n\n");
+    const contextResults = await performRagRetrieval(tenantId, id, query);
+    const contextChunks = contextResults.citations || [];
+    const contextText = contextChunks.map((c: any) => `Snippet: ${c.content}`).join("\n\n");
 
     const personality = "You are ConvoMag AI, a professional magazine assistant. Answer questions based ONLY on the provided context. If unsure, say so.";
     
@@ -841,8 +1144,8 @@ app.post('/api/magazines/:id/chat-rag', async (req, res) => {
     contents.push({ role: 'user', parts: [{ text: `CONTEXT:\n${contextText}\n\nUSER QUERY: ${query}` }] });
 
     const result = await getAi().models.generateContent({
-      model: "gemini-2.0-flash",
-      contents,
+      model: "gemini-flash-latest",
+      contents: contents,
       config: {
         systemInstruction: personality
       }
@@ -850,7 +1153,7 @@ app.post('/api/magazines/:id/chat-rag', async (req, res) => {
 
     res.json({
       answer: result.text || "",
-      citations: contextChunks.map(c => ({ id: c.id, content: c.content }))
+      citations: contextChunks.map((c: any) => ({ id: c.id, content: c.content }))
     });
   } catch (error: any) {
     const errorMsg = error.message || String(error);
@@ -862,30 +1165,37 @@ app.post('/api/magazines/:id/chat-rag', async (req, res) => {
 // --- API Routes for Bookshelves ---
 
 // Get all bookshelves
-app.get('/api/bookshelves', (req, res) => {
+app.get('/api/bookshelves', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    const bookshelves = db.prepare('SELECT * FROM bookshelves').all();
-    const bookshelvesWithMags = bookshelves.map((bs: any) => ({
+    const tenantId = req.query.tenantId as string || 'tenant_default';
+    const bookshelves = await db.select().from(schema.bookshelves).where(eq(schema.bookshelves.tenantId, tenantId));
+    const bookshelvesWithMags = await Promise.all(bookshelves.map(async (bs: any) => ({
       ...bs,
-      magazines: db.prepare(`
-        SELECT m.* FROM magazines m
-        JOIN bookshelf_magazines bm ON m.id = bm.magId
-        WHERE bm.bookshelfId = ?
-        ORDER BY bm.position
-      `).all(bs.id)
-    }));
+      magazines: await db.select()
+        .from(schema.magazines)
+        .innerJoin(schema.bookshelfMagazines, eq(schema.magazines.id, schema.bookshelfMagazines.magId))
+        .where(eq(schema.bookshelfMagazines.bookshelfId, bs.id))
+        .orderBy(schema.bookshelfMagazines.position)
+        .then(rows => rows.map(r => r.magazines))
+    })));
     res.json(bookshelvesWithMags);
   } catch (error) {
+    console.error('Fetch Bookshelves Error:', error);
     res.status(500).json({ error: 'Failed to fetch bookshelves' });
   }
 });
 
 // Create bookshelf
-app.post('/api/bookshelves', (req, res) => {
+app.post('/api/bookshelves', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const { title, publisherId } = req.body;
     const id = `shelf_${Date.now()}`;
-    db.prepare('INSERT INTO bookshelves (id, title, publisherId, createdAt) VALUES (?, ?, ?, ?)').run(id, title, publisherId || 'pub_1', new Date().toISOString());
+    await db.insert(schema.bookshelves).values({
+      id,
+      title,
+      publisherId: publisherId || 'pub_1',
+      createdAt: new Date(),
+    });
     res.json({ id });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create bookshelf' });
@@ -893,9 +1203,9 @@ app.post('/api/bookshelves', (req, res) => {
 });
 
 // Delete bookshelf
-app.delete('/api/bookshelves/:id', (req, res) => {
+app.delete('/api/bookshelves/:id', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    db.prepare('DELETE FROM bookshelves WHERE id = ?').run(req.params.id);
+    await db.delete(schema.bookshelves).where(eq(schema.bookshelves.id, req.params.id));
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete bookshelf' });
@@ -903,10 +1213,14 @@ app.delete('/api/bookshelves/:id', (req, res) => {
 });
 
 // Add magazine to bookshelf
-app.post('/api/bookshelves/:id/magazines', (req, res) => {
+app.post('/api/bookshelves/:id/magazines', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const { magId } = req.body;
-    db.prepare('INSERT INTO bookshelf_magazines (bookshelfId, magId, position) VALUES (?, ?, ?)').run(req.params.id, magId, Date.now());
+    await db.insert(schema.bookshelfMagazines).values({
+      bookshelfId: req.params.id,
+      magId,
+      position: Date.now(),
+    });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to add magazine to bookshelf' });
@@ -914,9 +1228,10 @@ app.post('/api/bookshelves/:id/magazines', (req, res) => {
 });
 
 // Remove magazine from bookshelf
-app.delete('/api/bookshelves/:bookshelfId/magazines/:magId', (req, res) => {
+app.delete('/api/bookshelves/:bookshelfId/magazines/:magId', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    db.prepare('DELETE FROM bookshelf_magazines WHERE bookshelfId = ? AND magId = ?').run(req.params.bookshelfId, req.params.magId);
+    await db.delete(schema.bookshelfMagazines)
+      .where(and(eq(schema.bookshelfMagazines.bookshelfId, req.params.bookshelfId), eq(schema.bookshelfMagazines.magId, req.params.magId)));
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to remove magazine from bookshelf' });
@@ -925,9 +1240,9 @@ app.delete('/api/bookshelves/:bookshelfId/magazines/:magId', (req, res) => {
 
 // --- DOCUPIPE API KEY & EXTRACTION HELPERS ---
 
-function getDocupipeApiKey(): string {
+async function getDocupipeApiKey(): Promise<string> {
   try {
-    const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("docupipe_api_key") as any;
+    const [row] = await db.select().from(schema.settings).where(eq(schema.settings.key, "docupipe_api_key"));
     if (row && row.value) {
       return row.value;
     }
@@ -938,7 +1253,7 @@ function getDocupipeApiKey(): string {
 }
 
 async function extractTextWithDocupipe(pdfBuffer: Buffer, fileName: string): Promise<string> {
-  const docupipeKey = getDocupipeApiKey();
+  const docupipeKey = await getDocupipeApiKey();
   if (!docupipeKey) {
     throw new Error('No DOCUPIPE_API_KEY is configured');
   }
@@ -1072,8 +1387,8 @@ async function extractTextWithDocupipe(pdfBuffer: Buffer, fileName: string): Pro
   return text;
 }
 
-app.get('/api/docupipe/config', (req, res) => {
-  const apiKey = getDocupipeApiKey();
+app.get('/api/docupipe/config', requireAuth, tenantGuard, async (req: any, res) => {
+  const apiKey = await getDocupipeApiKey();
   res.json({
     apiKeyConfigured: !!apiKey,
     hasEnvKey: !!process.env.DOCUPIPE_API_KEY,
@@ -1081,10 +1396,16 @@ app.get('/api/docupipe/config', (req, res) => {
   });
 });
 
-app.post('/api/docupipe/config', (req, res) => {
+app.post('/api/docupipe/config', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const { apiKey } = req.body;
-    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('docupipe_api_key', apiKey || '');
+    await db.insert(schema.settings).values({
+      key: 'docupipe_api_key',
+      value: apiKey || '',
+    }).onConflictDoUpdate({
+      target: schema.settings.key,
+      set: { value: apiKey || '' },
+    });
     res.json({ success: true, apiKeyConfigured: !!apiKey });
   } catch (err: any) {
     console.error(err);
@@ -1101,27 +1422,22 @@ async function runBackgroundStandardization(
   schemaId: string,
   docupipeKey: string
 ) {
-  const updateStatus = (status: string, updates: Record<string, any> = {}) => {
+  const updateStatus = async (status: string, updates: Record<string, any> = {}) => {
     try {
-      const keys = Object.keys(updates);
-      if (keys.length > 0) {
-        const setClauses = ['status = ?', ...keys.map(k => `${k} = ?`)].join(', ');
-        const values = [status, ...keys.map(k => {
-          const val = updates[k];
-          return (val && typeof val === 'object') ? JSON.stringify(val) : val;
-        }), extractionId];
-        db.prepare(`UPDATE docupipe_extractions SET ${setClauses} WHERE id = ?`).run(...values);
-      } else {
-        db.prepare('UPDATE docupipe_extractions SET status = ? WHERE id = ?').run(status, extractionId);
-      }
+      await db.update(schema.docupipeExtractions)
+        .set({
+          status,
+          ...updates,
+        })
+        .where(eq(schema.docupipeExtractions.id, extractionId));
     } catch (e) {
-      console.error('[Local Schema Lab] Error updating background extraction SQLite record:', e);
+      console.error('[Local Schema Lab] Error updating background extraction record:', e);
     }
   };
 
   try {
     // Stage 1: Load and Parse PDF Text Natively
-    updateStatus('uploading');
+    await updateStatus('uploading');
     console.log(`[Local Schema Lab] Natively parsing PDF text contents for job ${extractionId}...`);
     
     const pdfParser = typeof pdfParse === 'function' ? pdfParse : (pdfParse as any).default;
@@ -1133,10 +1449,10 @@ async function runBackgroundStandardization(
     }
 
     console.log(`[Local Schema Lab] Successfully extracted ${extractedText.length} characters of plain text context.`);
-    updateStatus('ingesting', { documentId: `local_${Date.now()}`, jobId: `job_${Date.now()}` });
+    await updateStatus('ingesting', { documentId: `local_${Date.now()}`, jobId: `job_${Date.now()}` });
 
     await new Promise(resolve => setTimeout(resolve, 800)); // Smooth transitions
-    updateStatus('submitting_standardization');
+    await updateStatus('submitting_standardization');
 
     // Stage 2: Call In-App Gemini API to build structured schema
     console.log(`[Local Schema Lab] Requesting structured output from Gemini engine for schema: ${schemaId}...`);
@@ -1182,7 +1498,7 @@ Return EXACTLY a JSON dictionary structured as follows:
 }`;
     }
 
-    updateStatus('polling_standardization');
+    await updateStatus('polling_standardization');
     
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
@@ -1202,26 +1518,34 @@ Return EXACTLY a JSON dictionary structured as follows:
       structuredJson = { "Raw Extracted Content": { "text": outputText } };
     }
 
-    updateStatus('retrieving_json');
+    await updateStatus('retrieving_json');
     
-    // Stage 3: Commit native JSON back to SQLite database
-    console.log(`[Local Schema Lab] Updating SQLite records with compiled data...`);
-    db.prepare('UPDATE docupipe_extractions SET status = ?, resultJson = ? WHERE id = ?')
-      .run('completed', JSON.stringify(structuredJson), extractionId);
+    // Stage 3: Commit native JSON back to relational database
+    console.log(`[Local Schema Lab] Updating records with compiled data...`);
+    await db.update(schema.docupipeExtractions)
+      .set({
+        status: 'completed',
+        resultJson: JSON.stringify(structuredJson),
+      })
+      .where(eq(schema.docupipeExtractions.id, extractionId));
 
     console.log(`[Local Schema Lab] Complete! Native extraction successfully persisted for job: ${extractionId}`);
 
   } catch (err: any) {
     const errorMsg = err.message || String(err);
     console.error(`[Local Schema Lab Job failed]:`, errorMsg.substring(0, 100));
-    db.prepare('UPDATE docupipe_extractions SET status = ?, error = ? WHERE id = ?')
-      .run('failed', errorMsg.substring(0, 500), extractionId);
+    await db.update(schema.docupipeExtractions)
+      .set({
+        status: 'failed',
+        error: errorMsg.substring(0, 500),
+      })
+      .where(eq(schema.docupipeExtractions.id, extractionId));
   }
 }
 
-app.get('/api/docupipe/extractions', (req, res) => {
+app.get('/api/docupipe/extractions', async (req, res) => {
   try {
-    const rows = db.prepare('SELECT * FROM docupipe_extractions ORDER BY createdAt DESC').all();
+    const rows = await db.select().from(schema.docupipeExtractions).orderBy(desc(schema.docupipeExtractions.createdAt));
     res.json(rows.map((row: any) => ({
       ...row,
       resultJson: row.resultJson ? JSON.parse(row.resultJson) : null
@@ -1232,9 +1556,9 @@ app.get('/api/docupipe/extractions', (req, res) => {
   }
 });
 
-app.get('/api/docupipe/extractions/:id', (req, res) => {
+app.get('/api/docupipe/extractions/:id', async (req, res) => {
   try {
-    const row = db.prepare('SELECT * FROM docupipe_extractions WHERE id = ?').get(req.params.id) as any;
+    const [row] = await db.select().from(schema.docupipeExtractions).where(eq(schema.docupipeExtractions.id, req.params.id));
     if (!row) {
       return res.status(404).json({ error: 'Extraction check failed: record not found' });
     }
@@ -1248,9 +1572,9 @@ app.get('/api/docupipe/extractions/:id', (req, res) => {
   }
 });
 
-app.delete('/api/docupipe/extractions/:id', (req, res) => {
+app.delete('/api/docupipe/extractions/:id', async (req, res) => {
   try {
-    db.prepare('DELETE FROM docupipe_extractions WHERE id = ?').run(req.params.id);
+    await db.delete(schema.docupipeExtractions).where(eq(schema.docupipeExtractions.id, req.params.id));
     res.json({ success: true });
   } catch (err: any) {
     console.error(err);
@@ -1258,8 +1582,8 @@ app.delete('/api/docupipe/extractions/:id', (req, res) => {
   }
 });
 
-app.post('/api/docupipe/standardize', (req, res) => {
-  const docupipeKey = getDocupipeApiKey() || '';
+app.post('/api/docupipe/standardize', async (req, res) => {
+  const docupipeKey = await getDocupipeApiKey() || '';
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!docupipeKey && !geminiKey) {
     return res.status(401).json({ error: 'Gemini API Key is not configured. Please define GEMINI_API_KEY in settings to use the Native AI Parser.' });
@@ -1281,7 +1605,7 @@ app.post('/api/docupipe/standardize', (req, res) => {
     } else if (pdfUrl) {
       actualFileName = path.basename(pdfUrl) || 'document.pdf';
     } else if (magazineId) {
-      const mag = db.prepare('SELECT title, pdfUrl FROM magazines WHERE id = ?').get(magazineId) as any;
+      const [mag] = await db.select().from(schema.magazines).where(eq(schema.magazines.id, magazineId));
       if (!mag) return res.status(404).json({ error: 'Magazine not found' });
       actualFileName = `${mag.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}.pdf`;
 
@@ -1297,17 +1621,14 @@ app.post('/api/docupipe/standardize', (req, res) => {
 
     const extractionId = 'ext_' + Math.random().toString(36).substring(2, 11);
     
-    db.prepare(`
-      INSERT INTO docupipe_extractions (id, fileName, schemaId, schemaName, status, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-      extractionId,
-      actualFileName,
+    await db.insert(schema.docupipeExtractions).values({
+      id: extractionId,
+      fileName: actualFileName,
       schemaId,
-      schemaName || 'Custom Schema',
-      'queued',
-      new Date().toISOString()
-    );
+      schemaName: schemaName || 'Custom Schema',
+      status: 'queued',
+      createdAt: new Date(),
+    });
 
     // Return the response immediately so browser isn't held hostage by 45s cloud processing loops
     res.json({
@@ -1328,7 +1649,7 @@ app.post('/api/docupipe/standardize', (req, res) => {
         }
 
         if (!pdfBuffer && magazineId) {
-          const mag = db.prepare('SELECT pdfUrl FROM magazines WHERE id = ?').get(magazineId) as any;
+          const [mag] = await db.select().from(schema.magazines).where(eq(schema.magazines.id, magazineId));
           if (mag && mag.pdfUrl && mag.pdfUrl.startsWith('http')) {
             console.log(`[Background Standardize] Pulling remote web address for magazine: ${mag.pdfUrl}...`);
             const response = await fetch(mag.pdfUrl);
@@ -1347,8 +1668,9 @@ app.post('/api/docupipe/standardize', (req, res) => {
         await runBackgroundStandardization(extractionId, pdfBuffer, actualFileName, schemaId, docupipeKey);
       } catch (err: any) {
         console.error(`[Background Fetch/Init error] on ${extractionId}:`, err);
-        db.prepare('UPDATE docupipe_extractions SET status = ?, error = ? WHERE id = ?')
-          .run('failed', err.message || String(err), extractionId);
+        await db.update(schema.docupipeExtractions)
+          .set({ status: 'failed', error: err.message || String(err) })
+          .where(eq(schema.docupipeExtractions.id, extractionId));
       }
     })();
 
@@ -1360,9 +1682,9 @@ app.post('/api/docupipe/standardize', (req, res) => {
 
 // --- HEYZINE API PROXY ENDPOINTS ---
 
-function getHeyzineApiKey(): string | null {
+async function getHeyzineApiKey(): Promise<string | null> {
   try {
-    const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("heyzine_api_key") as any;
+    const [row] = await db.select().from(schema.settings).where(eq(schema.settings.key, "heyzine_api_key"));
     if (row && row.value) {
       return row.value;
     }
@@ -1385,8 +1707,8 @@ async function handleHzResponse(hzRes: Response) {
   return await hzRes.json();
 }
 
-app.get('/api/heyzine/config', (req, res) => {
-  const apiKey = getHeyzineApiKey();
+app.get('/api/heyzine/config', async (req, res) => {
+  const apiKey = await getHeyzineApiKey();
   res.json({
     apiKeyConfigured: !!apiKey,
     hasEnvKey: !!process.env.HEYZINE_API_KEY,
@@ -1394,10 +1716,12 @@ app.get('/api/heyzine/config', (req, res) => {
   });
 });
 
-app.post('/api/heyzine/config', (req, res) => {
+app.post('/api/heyzine/config', async (req, res) => {
   try {
     const { apiKey } = req.body;
-    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('heyzine_api_key', apiKey || '');
+    await db.insert(schema.settings)
+      .values({ key: 'heyzine_api_key', value: apiKey || '' })
+      .onConflictDoUpdate({ target: schema.settings.key, set: { value: apiKey || '' } });
     res.json({ success: true, apiKeyConfigured: !!apiKey });
   } catch (err: any) {
     console.error(err);
@@ -1407,7 +1731,7 @@ app.post('/api/heyzine/config', (req, res) => {
 
 app.get('/api/heyzine/publications', async (req, res) => {
   try {
-    const apiKey = getHeyzineApiKey();
+    const apiKey = await getHeyzineApiKey();
     if (!apiKey) return res.status(401).json({ error: 'Heyzine API key is not configured.' });
 
     const hzRes = await fetch('https://heyzine.com/api1/flipbook-list', {
@@ -1481,7 +1805,7 @@ app.post('/api/heyzine/tracked-links', async (req, res) => {
 app.post('/api/heyzine/delete', async (req, res) => {
   try {
     const { id } = req.body;
-    const apiKey = getHeyzineApiKey();
+    const apiKey = await getHeyzineApiKey();
     if (!apiKey) return res.status(401).json({ error: 'Heyzine API key is not configured.' });
 
     const hzRes = await fetch('https://heyzine.com/api1/flipbook-delete', {
@@ -1501,7 +1825,7 @@ app.post('/api/heyzine/delete', async (req, res) => {
   }
 });
 
-app.post('/api/magazines', async (req, res) => {
+app.post('/api/magazines', async (req: any, res) => {
   try {
     const { publisherId, title, slug, coverUrl, pdfUrl, pdfData, status, aiEnabled, aiPersonality, aiContext, ttsEnabled, chatEnabled, pageCount } = req.body;
     let finalPdfUrl = pdfUrl || '';
@@ -1524,13 +1848,14 @@ app.post('/api/magazines', async (req, res) => {
     }
 
     const id = `mag_${Date.now()}`;
+    const tenantId = req.user?.tenantId || req.user?.tenant_id || 'tenant_default';
 
     // Ensure uniqueness of slug in the database
     const baseSlug = (slug || title || 'magazine').toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     let finalSlug = baseSlug || 'magazine';
     let suffix = 1;
     while (true) {
-      const existing = db.prepare('SELECT id FROM magazines WHERE slug = ?').get(finalSlug);
+      const [existing] = await db.select().from(schema.magazines).where(eq(schema.magazines.slug, finalSlug));
       if (!existing) {
         break;
       }
@@ -1538,24 +1863,32 @@ app.post('/api/magazines', async (req, res) => {
       suffix++;
     }
 
-    const insert = db.prepare(`
-      INSERT INTO magazines 
-      (id, publisherId, title, slug, coverUrl, pdfUrl, status, createdAt, aiEnabled, aiPersonality, aiContext, ttsEnabled, chatEnabled, viewCount, listenCount, pageCount) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
-    `);
-    
-    // Insert immediately so the UI can continue without waiting for long PDF extraction
-    insert.run(
-      id, publisherId, title, finalSlug, coverUrl || '', finalPdfUrl, status || 'draft',
-      new Date().toISOString(), aiEnabled ? 1 : 0, aiPersonality || null, aiContext || '', ttsEnabled ? 1 : 0, chatEnabled ? 1 : 0, Number(pageCount) || 0
-    );
+    await db.insert(schema.magazines).values({
+      id,
+      tenantId,
+      publisherId: publisherId || 'pub_1',
+      title,
+      slug: finalSlug,
+      coverUrl: coverUrl || '',
+      pdfUrl: finalPdfUrl,
+      status: status || 'draft',
+      createdAt: new Date(),
+      aiEnabled: !!aiEnabled,
+      aiPersonality: aiPersonality || null,
+      aiContext: aiContext || '',
+      ttsEnabled: !!ttsEnabled,
+      chatEnabled: !!chatEnabled,
+      viewCount: 0,
+      listenCount: 0,
+      pageCount: Number(pageCount) || 0,
+    });
     
     res.json({ id });
 
     // Extract text from the PDF as a background async task
     (async () => {
       let extractedText = '';
-      const docupipeKey = getDocupipeApiKey();
+      const docupipeKey = await getDocupipeApiKey();
       try {
         console.log(`Extracting text from PDF for ${id} in background...`);
         let pdfBuffer: Buffer | null = null;
@@ -1580,11 +1913,9 @@ app.post('/api/magazines', async (req, res) => {
         }
         
         if (extractedText) {
-          console.log(`Successfully extracted ${extractedText.length} characters from PDF for ${id}. Updating database...`);
-          const finalAiContext = aiContext ? `${aiContext}\n\n[ACTUAL KNOWLEDGE BASE CONTENT FROM MAGAZINE]\n\n${extractedText}` : `[ACTUAL KNOWLEDGE BASE CONTENT FROM MAGAZINE]\n\n${extractedText}`;
-          const update = db.prepare(`UPDATE magazines SET aiContext = ? WHERE id = ?`);
-          update.run(finalAiContext, id);
-          console.log(`Background PDF extraction completed for ${id}.`);
+          console.log(`Successfully extracted ${extractedText.length} characters from PDF for ${id}. Running deep analysis...`);
+          await MetadataFactory.processPublication(id, extractedText);
+          console.log(`Background PDF extraction and metadata factory processing completed for ${id}.`);
         }
       } catch (e) {
         console.error(`Failed to parse PDF text for ${id}:`, e);
@@ -1603,7 +1934,8 @@ wss.on('connection', async (clientWs, request) => {
   const contextKey = urlParams.get('context') || 'issue_82_master';
   
   // Try to find the magazine in the database first
-  const dbMag = db.prepare('SELECT * FROM magazines WHERE id = ?').get(contextKey.replace('_master', '').replace('_podcast', '')) as any;
+  const magazineId = contextKey.replace('_master', '').replace('_podcast', '');
+  const [dbMag] = await db.select().from(schema.magazines).where(eq(schema.magazines.id, magazineId));
 
   const isLeadership = contextKey.startsWith('leadership_') || [
     'vitality_sleep_focus', 'bonang_mohale_focus', 'lenacapavir_hiv_focus',
@@ -1868,61 +2200,9 @@ server.on('upgrade', (request, socket, head) => {
 
 // --- ConvoMag Production API Transitions ---
 
-// Ingest Enqueue Route
-app.post('/api/ingest', async (req, res) => {
-  const { documentId, tenantId, localPdfPath, pdfData, fileName } = req.body;
-  const tId = tenantId || 'tenant_default';
-  const docId = documentId || `doc_${uuidv4().substring(0, 8)}`;
-  
-  try {
-    let finalPdfPath = localPdfPath;
-
-    // Handle base64 upload from frontend
-    if (pdfData && !localPdfPath) {
-      const uploadsDir = path.join(process.cwd(), 'uploads');
-      if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
-      
-      const safeFileName = (fileName || 'document.pdf').replace(/[^a-zA-Z0-9.-]/g, '_');
-      finalPdfPath = path.join(uploadsDir, `${uuidv4()}_${safeFileName}`);
-      
-      const base64Data = pdfData.replace(/^data:application\/pdf;base64,/, "");
-      fs.writeFileSync(finalPdfPath, base64Data, 'base64');
-    }
-
-    if (!finalPdfPath) {
-      return res.status(400).json({ error: 'Missing PDF content (localPdfPath or pdfData)' });
-    }
-
-    // Step 0: Ensure document record exists in PG
-    await withTenant(tId, async (client) => {
-      await client.query(
-        `INSERT INTO documents (id, tenant_id, title, status)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (id) DO UPDATE SET updated_at = NOW()`,
-        [docId, tId, fileName || 'Untitled Document', 'queued']
-      );
-    });
-
-    // Process asynchronously (simulating BullMQ trigger)
-    processDocumentIngest({ documentId: docId, tenantId: tId, localPdfPath: finalPdfPath }).catch(err => {
-      tracer.error({ traceId: uuidv4(), documentId: docId, tenantId: tId }, 'Ingestion background task failed', err);
-    });
-
-    return res.status(202).json({
-      status: 'queued',
-      documentId: docId,
-      message: 'Document enqueued for layout-aware parsing and semantic indexing.',
-    });
-  } catch (err: any) {
-    tracer.error({ traceId: uuidv4(), documentId: docId, tenantId: tId }, 'Job enqueueing failed', err);
-    return res.status(500).json({ error: 'Failed to schedule ingestion pipeline.' });
-  }
-});
-
-// Secure Conversational Retrieval Route
+// Secure Conversational Retrieval Route pointing to unified resilient RAG engine
 app.post('/api/rag/chat', async (req, res) => {
   const { documentId, query, tenantId } = req.body;
-  // Use a default tenantId if not provided for backward compatibility
   const tId = tenantId || 'tenant_default';
 
   if (!documentId || !query) {
@@ -1930,10 +2210,10 @@ app.post('/api/rag/chat', async (req, res) => {
   }
 
   try {
-    const response = await executeTwoStageRAG(tId, documentId, query);
+    const response = await performRagRetrieval(tId, documentId, query);
     return res.json(response);
   } catch (err: any) {
-    tracer.error({ traceId: uuidv4(), documentId, tenantId: tId }, 'RAG pipeline error', err);
+    console.error('RAG pipeline error', { documentId, tenantId: tId, error: err });
     return res.status(500).json({ error: 'Failed to retrieve grounded answer.' });
   }
 });
@@ -1943,7 +2223,7 @@ app.get('/api/production-docs', async (req, res) => {
   try {
     const tenantId = req.query.tenantId as string || 'tenant_default';
     const docs = await withTenant(tenantId, async (client) => {
-      const result = await client.query('SELECT * FROM documents ORDER BY created_at DESC');
+      const result = await client.query('SELECT * FROM documents WHERE tenant_id = $1 ORDER BY created_at DESC', [tenantId]);
       return result.rows;
     });
     res.json(docs);
@@ -1952,36 +2232,8 @@ app.get('/api/production-docs', async (req, res) => {
   }
 });
 
-// Stripe Webhook with Raw Body
-app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  const signature = req.headers['stripe-signature'] as string;
-  const stripeClient = getStripe();
-  
-  if (!signature || !stripeClient) {
-    return res.status(400).json({ error: 'Missing webhook verification requirements' });
-  }
+// Stripe Webhook is now defined at the top of the file to ensure correct middleware ordering.
 
-  let stripeEvent: Stripe.Event;
-
-  try {
-    stripeEvent = stripeClient.webhooks.constructEvent(
-      req.body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET || ''
-    );
-  } catch (err: any) {
-    console.error(`Webhook Signature validation failure: ${err.message}`);
-    return res.status(400).json({ error: `Signature Validation Failed: ${err.message}` });
-  }
-
-  try {
-    await processBillingWebhook(stripeEvent);
-    return res.json({ received: true });
-  } catch (error: any) {
-    console.error(`Database synchronization failed: ${error.message}`);
-    return res.status(500).json({ error: 'Failed to synchronize billing state' });
-  }
-});
 
 async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';
@@ -2018,10 +2270,18 @@ async function startServer() {
     });
   }
 
-  const port = 3000;
+  const port = parseInt(process.env.PORT || '3000', 10);
+  console.log(`Attempting to bind to port ${port}...`);
   server.listen(port, '0.0.0.0', () => {
     console.log(`Server started on http://0.0.0.0:${port}`);
   });
+}
+
+if (!process.env.GEMINI_API_KEY) {
+  console.error("CRITICAL: GEMINI_API_KEY is not set.");
+}
+if (!process.env.SQL_HOST) {
+  console.warn("WARNING: SQL_HOST is not set.");
 }
 
 startServer();

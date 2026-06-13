@@ -1,0 +1,113 @@
+version: '3.8'
+
+# ==============================================================================
+#             CONVOMAG AI - SYSTEM ORCHESTRATION STACK (DEV/PROD)
+# ==============================================================================
+# Fully integrated, production-grade local multi-service composition.
+# Orchestrates:
+# 1. pgvector   - Persistent PostgreSQL database with vector similarity search engine.
+# 2. redis      - Dynamic Key-Value cache and background queue processor (BullMQ).
+# 3. convomag   - Main full-stack Express + React App running on Port 3000.
+# ==============================================================================
+
+services:
+  # ------------------------------------------------------------------------------
+  # database: PostgreSQL with pgvector capabilities
+  # ------------------------------------------------------------------------------
+  database:
+    image: pgvector/pgvector:16-pgdg-alpine
+    container_name: convomag-postgres
+    restart: unless-stopped
+    shm_size: 128mb  # Increase share memory limit for large vector HNSW index calculations
+    environment:
+      POSTGRES_USER: ${DB_USER:-convomag}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-convosecret2026}
+      POSTGRES_DB: ${DB_NAME:-convomag_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Auto-run schemas/extensions on initialization if database is empty
+      - ./schema_pg.sql:/docker-entrypoint-initdb.d/10-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------------------
+  # queue: Redis database for BullMQ background publisher workflows
+  # ------------------------------------------------------------------------------
+  queue:
+    image: redis:7.2-alpine
+    container_name: convomag-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------------------
+  # app: The full-stack interactive client & routing application
+  # ------------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: convomag-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+      queue:
+        condition: service_healthy
+    volumes:
+      - app-data:/app/data
+      - app-uploads:/app/uploads
+      - app-logs:/app/logs
+    environment:
+      # General Framework and Router Binding
+      - PORT=3000
+      - NODE_ENV=production
+      
+      # Database Connections
+      - DATABASE_PATH=/app/data/database.sqlite
+      - DATABASE_URL=postgresql://${DB_USER:-convomag}:${DB_PASSWORD:-convosecret2026}@database:5432/${DB_NAME:-convomag_db}?sslmode=disable
+      - REDIS_HOST=queue
+      - REDIS_PORT=6379
+      
+      # Security Keys (Secrets should be injected via .env / Env Manager)
+      - JWT_SECRET=${JWT_SECRET:-convomag_investor_readiness_secret_2026}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+# ------------------------------------------------------------------------------
+# Persistent Volume Configuration
+# ------------------------------------------------------------------------------
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  app-data:
+    driver: local
+  app-uploads:
+    driver: local
+  app-logs:
+    driver: local

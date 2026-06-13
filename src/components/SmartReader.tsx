@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { loadMagazineContent, MagazineArticle } from '../lib/contentLoader';
 import TalkToThisIssue from './TalkToThisIssue';
-import { Sparkles, X, Loader2 } from 'lucide-react';
+import AIPodcastPlayer from './AIPodcastPlayer';
+import { Sparkles, X, Loader2, Headphones } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ReaderProps {
   magazineId: string;
@@ -102,6 +104,7 @@ export default function SmartReader({ magazineId }: ReaderProps) {
   const [articles, setArticles] = useState<MagazineArticle[]>([]);
   const [activeSectionText, setActiveSectionText] = useState<string>('');
   const [activeSectionHeading, setActiveSectionHeading] = useState<string>('');
+  const [showPodcast, setShowPodcast] = useState(false);
   
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -144,8 +147,14 @@ export default function SmartReader({ magazineId }: ReaderProps) {
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-950 text-slate-100">
       {/* Header */}
-      <header className="h-16 border-b border-slate-800 flex items-center px-6 shrink-0 bg-slate-950">
+      <header className="h-16 border-b border-slate-800 flex items-center justify-between px-6 shrink-0 bg-slate-950">
         <h1 className="text-white font-bold tracking-tight">ConvoMag AI Reader</h1>
+        <button 
+          onClick={() => setShowPodcast(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-500 rounded-full text-xs font-bold transition-all"
+        >
+          <Headphones size={14} /> AI Podcast Mode
+        </button>
       </header>
 
       {/* Main Workspace */}
@@ -178,6 +187,16 @@ export default function SmartReader({ magazineId }: ReaderProps) {
           />
         </aside>
       </div>
+
+      <AnimatePresence>
+        {showPodcast && (
+          <AIPodcastPlayer 
+            magazineId={magazineId} 
+            magazineTitle={currentArticle.title} 
+            onClose={() => setShowPodcast(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

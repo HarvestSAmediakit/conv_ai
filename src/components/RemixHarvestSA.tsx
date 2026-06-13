@@ -232,35 +232,35 @@ export default function RemixHarvestSA() {
   return (
     <div className="bg-[#050505] h-screen overflow-hidden flex flex-col m-0 p-0 font-sans text-gray-100 blueprint-grid">
       {/* Premium Editorial Header Console */}
-      <div className="bg-[#050505]/90 text-gray-100 px-6 py-4 flex items-center justify-between border-b border-white/10/50 z-50 backdrop-blur-md">
-        <div className="flex items-center space-x-3.5">
+      <div className="bg-[#050505]/95 text-gray-100 px-4 py-3 flex items-center justify-between border-b border-white/10 z-50 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-3 overflow-hidden">
           <button 
             onClick={() => navigate('/hub')}
-            className="p-2 hover:bg-[#1A1A1A]/10 border border-white/10 rounded-xl transition-all cursor-pointer"
+            className="p-1.5 hover:bg-[#1A1A1A]/50 border border-white/10 rounded-lg transition-all cursor-pointer shrink-0"
             title="Return to Newsstand"
           >
             <BookOpen size={16} className="text-zinc-300" />
           </button>
-          <span className="bg-white/10 border border-white/10 text-[8px] uppercase px-2.5 py-1 rounded font-mono tracking-widest text-zinc-600 font-semibold">Remix Exhibition</span>
-          <h1 className="text-sm font-serif font-medium tracking-wide text-zinc-200">Harvest SA Multimodal Live API</h1>
+          <span className="bg-white/10 border border-white/10 text-[9px] uppercase px-2 py-0.5 rounded font-mono tracking-widest text-zinc-400 font-semibold shrink-0 hidden sm:block">Remix</span>
+          <h1 className="text-xs sm:text-sm font-semibold tracking-wide text-zinc-200 truncate pr-2">Harvest SA <span className="font-light text-zinc-400">| Multimodal</span></h1>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="relative group">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="relative group hidden sm:block">
             <input 
               type="password" 
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter Gemini API Key" 
-              className="bg-[#0A0A0A]/60 border border-white/10 rounded-xl text-xs pl-4 pr-10 py-2 w-48 text-zinc-200 focus:outline-none focus:border-indigo-500/50 transition-all focus:w-64 placeholder:text-zinc-400"
+              placeholder="Gemini API Key" 
+              className="bg-[#0A0A0A] border border-white/10 rounded-lg text-xs pl-3 pr-8 py-1.5 w-32 focus:w-48 text-zinc-200 focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-500"
             />
-            <Settings size={13} className="absolute right-4.5 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-zinc-600" />
+            <Settings size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
           </div>
           <select 
             onChange={(e) => changePreset(e.target.value)}
-            className="bg-[#0A0A0A]/60 border border-white/10 rounded-xl text-xs px-4 py-2 text-zinc-300 font-mono focus:outline-none focus:border-indigo-500/50 transition-all cursor-pointer"
+            className="bg-[#0A0A0A] border border-white/10 rounded-lg text-[10px] sm:text-xs px-2 py-1.5 text-zinc-300 font-mono focus:outline-none focus:border-indigo-500/50 transition-all cursor-pointer max-w-[120px] sm:max-w-[180px] truncate"
           >
-            <option value="croplan">Scenario: Croplan Seed Expert</option>
-            <option value="stihl">Scenario: STIHL Technical Guide</option>
+            <option value="croplan">CropLan Expert</option>
+            <option value="stihl">STIHL Guide</option>
           </select>
         </div>
       </div>
@@ -298,8 +298,20 @@ export default function RemixHarvestSA() {
           </div>
 
           {/* Control Panel */}
-          <div className="p-6.5 flex flex-col items-center bg-[#0A0A0A]/70">
-            <div className="relative mb-6">
+          <div className="p-6 flex flex-col items-center bg-[#0A0A0A]/95">
+            {!isConnected && !isConnecting && (
+              <div className="w-full mb-6">
+                <input 
+                  type="password" 
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Paste Gemini API Key here" 
+                  className="w-full bg-black border border-white/10 rounded-xl text-xs px-4 py-2.5 text-zinc-200 focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-600 text-center"
+                />
+              </div>
+            )}
+          
+            <div className="relative mb-5 mt-2">
               <AnimatePresence>
                 {isConnected && (
                   <motion.div 
@@ -314,8 +326,8 @@ export default function RemixHarvestSA() {
               
               <button 
                 onClick={toggleConnection}
-                disabled={isConnecting}
-                className={`relative z-10 w-20 h-20 cursor-pointer ${isConnecting ? 'bg-zinc-850' : (isConnected ? 'bg-rose-600 hover:bg-rose-500 border-rose-500/20' : 'bg-indigo-600 hover:bg-indigo-500 border-indigo-500/20')} text-white rounded-full flex items-center justify-center focus:outline-none border shadow-md transition-all active:scale-95 disabled:cursor-not-allowed`}
+                disabled={isConnecting || (!apiKey && !isConnected)}
+                className={`relative z-10 w-20 h-20 cursor-pointer ${isConnecting ? 'bg-zinc-850' : (isConnected ? 'bg-rose-600 hover:bg-rose-500 border-rose-500/20' : 'bg-indigo-600 hover:bg-indigo-500 border-indigo-500/20')} text-white rounded-full flex items-center justify-center focus:outline-none border shadow-md transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 {isConnecting ? (
                   <RefreshCw className="h-7 w-7 animate-spin text-zinc-300" />
@@ -327,10 +339,10 @@ export default function RemixHarvestSA() {
               </button>
             </div>
             
-            <p className="text-center text-xs text-zinc-550 font-light px-1 leading-relaxed">
+            <p className="text-center text-xs text-zinc-400 font-light px-1 leading-relaxed">
               {isConnected 
                 ? "Streaming audio in real-time. Speak to engage with the assistant." 
-                : "Enter your Gemini API key above and tap the microphone to begin the low-latency conversation layer."}
+                : "Tap the microphone to begin the low-latency conversation layer."}
             </p>
             
             <div className="mt-5 flex items-center gap-2 text-[10px] text-zinc-500 bg-white/5 border border-white/5 px-4 py-2 rounded-xl">

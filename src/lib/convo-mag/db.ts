@@ -1,14 +1,5 @@
-import { Pool, PoolClient } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: parseInt(process.env.DB_POOL_MAX || '20', 10),
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+import { pool } from '../../db/index.ts';
+import { PoolClient } from 'pg';
 
 /**
  * Wraps database operations in a transaction block scoped strictly to the specified tenant.
@@ -38,3 +29,5 @@ export async function withTenant<T>(
     client.release();
   }
 }
+
+export { pool };

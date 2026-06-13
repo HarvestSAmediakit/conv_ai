@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import AIAssistant from './AIAssistant';
 import { MagazineFlipbook } from './MagazineFlipbook';
+import AIPodcastPlayer from './AIPodcastPlayer';
 
 interface Magazine {
   id: string;
@@ -30,6 +31,7 @@ export default function FlipbookReader() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [magazine, setMagazine] = useState<Magazine | null>(null);
+  const [showPodcast, setShowPodcast] = useState(false);
   
   // Example page URLs if none provided by API
   const defaultPages = [
@@ -69,12 +71,28 @@ export default function FlipbookReader() {
             <ChevronLeft size={20} />
           </button>
           <h1 className="text-zinc-400 font-bold tracking-tight text-xs uppercase bg-zinc-900/50 px-3 py-1.5 backdrop-blur-md border border-zinc-800 rounded-lg">{magazine.title}</h1>
+          <button 
+            onClick={() => setShowPodcast(true)}
+            className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 backdrop-blur-md rounded-full text-emerald-500 transition-all border border-emerald-500/20 flex items-center gap-2 px-4 shadow-xl"
+          >
+            <Headphones size={16} /> <span className="text-[10px] font-bold uppercase tracking-widest pt-0.5">Podcast Mode</span>
+          </button>
       </div>
 
       <MagazineFlipbook 
         documentId={magazine.id} 
         pagesUrls={magazine.pages || defaultPages} 
       />
+
+      <AnimatePresence>
+        {showPodcast && (
+          <AIPodcastPlayer 
+            magazineId={magazine.id} 
+            magazineTitle={magazine.title} 
+            onClose={() => setShowPodcast(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

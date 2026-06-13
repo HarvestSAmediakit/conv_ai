@@ -17,6 +17,21 @@ import {
 
 export default function Profile() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<{ name: string; email: string } | null>(() => {
+    const saved = localStorage.getItem('convomag_user');
+    try {
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleLogout = () => {
+    localStorage.removeItem('convomag_token');
+    localStorage.removeItem('convomag_user');
+    setUser(null);
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] font-sans pb-20 relative">
@@ -46,14 +61,14 @@ export default function Profile() {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#0A0A0A] rounded-2xl p-6 shadow-sm border border-white/10 mb-6 flex items-center gap-4"
+          className="bg-[#0A0A0A] rounded-2xl p-6 shadow-sm border border-white/10 mb-6 flex items-center gap-4 animate-fade-in"
         >
           <div className="w-16 h-16 bg-[#00c896]/10 rounded-full flex items-center justify-center text-[#00c896]">
             <User size={32} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-100">Reader Account</h2>
-            <p className="text-zinc-500 text-sm">reader@convomag.com</p>
+            <h2 className="text-xl font-bold text-gray-100">{user?.name || 'Guest Reader'}</h2>
+            <p className="text-zinc-500 text-sm">{user?.email || 'Anonymous session'}</p>
           </div>
         </motion.div>
 
@@ -81,7 +96,10 @@ export default function Profile() {
               <ChevronRight size={20} className="text-zinc-400" />
             </button>
             
-            <button className="flex items-center justify-between p-4 border-b border-white/5 hover:bg-[#1A1A1A]/5 transition-colors text-left w-full">
+            <button 
+              onClick={() => navigate('/billing')}
+              className="flex items-center justify-between p-4 border-b border-white/5 hover:bg-[#1A1A1A]/5 transition-colors text-left w-full"
+            >
               <div className="flex items-center gap-3 text-zinc-300">
                 <CreditCard size={20} className="text-zinc-400" />
                 <span className="font-medium">Subscription & Billing</span>
@@ -89,38 +107,30 @@ export default function Profile() {
               <ChevronRight size={20} className="text-zinc-400" />
             </button>
             
-            <button 
-              onClick={() => navigate('/login')}
-              className="flex items-center justify-between p-4 hover:bg-red-50 transition-colors text-left w-full"
-            >
-              <div className="flex items-center gap-3 text-red-600">
-                <LogOut size={20} />
-                <span className="font-medium">Log Out</span>
-              </div>
-            </button>
+            {user ? (
+              <button 
+                onClick={handleLogout}
+                className="flex items-center justify-between p-4 hover:bg-red-950/20 transition-colors text-left w-full border-t border-white/5"
+              >
+                <div className="flex items-center gap-3 text-red-500">
+                  <LogOut size={20} />
+                  <span className="font-medium">Log Out</span>
+                </div>
+              </button>
+            ) : (
+              <button 
+                onClick={() => navigate('/login')}
+                className="flex items-center justify-between p-4 hover:bg-emerald-950/20 transition-colors text-left w-full border-t border-white/5"
+              >
+                <div className="flex items-center gap-3 text-emerald-400">
+                  <LogOut size={20} className="rotate-180" />
+                  <span className="font-medium">Sign In to Dashboard</span>
+                </div>
+              </button>
+            )}
           </div>
         </motion.div>
       </main>
-
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-white/5 px-6 py-3 flex items-center justify-between z-50 pb-[max(env(safe-area-inset-bottom),12px)]">
-        <button onClick={() => navigate('/home')} className="flex flex-col items-center gap-1.5 text-zinc-400 hover:text-zinc-600 transition-colors">
-          <BookOpen strokeWidth={2.5} size={24} />
-          <span className="text-[10px] font-medium">Home</span>
-        </button>
-        <button onClick={() => navigate('/publish')} className="flex flex-col items-center gap-1.5 text-zinc-400 hover:text-zinc-600 transition-colors">
-          <Bookmark size={24} />
-          <span className="text-[10px] font-medium">Library</span>
-        </button>
-        <button onClick={() => navigate('/publish')} className="flex flex-col items-center gap-1.5 text-zinc-400 hover:text-zinc-600 transition-colors">
-          <LayoutGrid size={24} />
-          <span className="text-[10px] font-medium">Create</span>
-        </button>
-        <button className="flex flex-col items-center gap-1.5 text-[#00c896]">
-          <User size={24} />
-          <span className="text-[10px] font-bold">Profile</span>
-        </button>
-      </div>
     </div>
   );
 }

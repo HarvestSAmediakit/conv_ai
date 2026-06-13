@@ -58,16 +58,16 @@ export default function TalkToThisIssue({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: 'reader_001',
-          message: userMessage,
+          query: userMessage,
           currentReadingContext: readingContext,
-          history: messages.slice(-6)
+          history: messages.map(m => ({ text: m.content, sender: m.role === 'user' ? 'user' : 'model' }))
         })
       });
 
       const data = await response.json();
       
-      if (data.reply) {
-        setMessages(prev => [...prev, { role: 'model', content: data.reply }]);
+      if (data.answer) {
+        setMessages(prev => [...prev, { role: 'model', content: data.answer }]);
       }
     } catch (error) {
       setMessages(prev => [...prev, { 
