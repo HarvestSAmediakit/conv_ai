@@ -222,3 +222,15 @@ export const whiteLabelConfigs = pgTable('white_label_configs', {
   supportEmail: text('support_email'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const videoSummaries = pgTable('video_summaries', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id').notNull(),
+  title: text('title').notNull(),
+  youtubeUrl: text('youtube_url'),
+  transcript: text('transcript'),
+  summary: text('summary'),
+  highlights: text('highlights'), // JSON string of Array<{timestamp: string, text: string}>
+  status: text('status').default('pending').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

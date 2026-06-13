@@ -1,4 +1,4 @@
-import { pool } from '../../db/index.ts';
+import { getPool } from '../../db/index.ts';
 import { PoolClient } from 'pg';
 
 /**
@@ -9,7 +9,7 @@ export async function withTenant<T>(
   tenantId: string,
   fn: (client: PoolClient) => Promise<T>
 ): Promise<T> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await client.query('BEGIN');
     
@@ -30,4 +30,4 @@ export async function withTenant<T>(
   }
 }
 
-export { pool };
+export { getPool };

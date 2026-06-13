@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Square, Mic, Search, Volume2, ArrowRightCircle } from 'lucide-react';
+import { Play, Pause, Square, Mic, Search, Volume2, ArrowRightCircle, History, Terminal } from 'lucide-react';
 import AudioVisualizer from './AudioVisualizer';
+
+interface HistoryItem {
+  id: string;
+  transcript: string;
+  answer: string;
+  timestamp: number;
+}
 
 interface ConversationalPodcastProps {
   articleTitle: string;
@@ -15,6 +22,8 @@ export default function ConversationalPodcast({ articleTitle, articleText, assis
   const [state, setState] = useState<PodcastState>('idle');
   const [progress, setProgress] = useState(0);
   const [transcript, setTranscript] = useState<string>('');
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -62,6 +71,17 @@ export default function ConversationalPodcast({ articleTitle, articleText, assis
   };
 
   const handleResume = () => {
+    if (transcript) {
+      setHistory(h => [
+        {
+          id: Date.now().toString(),
+          transcript,
+          answer: "In paragraph 3, Sarah mentions GPT-5 will likely feature native reasoning protocols without needing chain-of-thought...",
+          timestamp: Date.now()
+        },
+        ...h
+      ]);
+    }
     setTranscript('');
     setState('playing');
   };
@@ -226,6 +246,69 @@ export default function ConversationalPodcast({ articleTitle, articleText, assis
             )}
           </AnimatePresence>
         </div>
+      </div>
+
+      {/* History Log */}
+      <AnimatePresence>
+        {showHistory && (
+          <motion.div
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            className="absolute inset-0 z-50 bg-zinc-950 border-t border-zinc-800 p-5 rounded-t-3xl shadow-xl overflow-hidden flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-zinc-400 text-xs font-bold uppercase tracking-widest">
+                <History size={14} className="text-indigo-400" />
+                <span>Command History</span>
+              </div>
+              <button 
+                onClick={() => setShowHistory(false)}
+                className="text-zinc-500 hover:text-zinc-300 text-xs font-bold px-2 py-1"
+              >
+                CLOSE
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
+              {history.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3">
+                  <Terminal size={32} />
+                  <p className="text-xs font-medium">No past commands recorded</p>
+                </div>
+              ) : (
+                history.map((item) => (
+                  <div key={item.id} className="space-y-2 group">
+                    <div className="flex items-start gap-2">
+                      <div className="mt-1 w-1 h-1 rounded-full bg-rose-500 shrink-0" />
+                      <p className="text-xs text-zinc-400 italic">"{item.transcript}"</p>
+                    </div>
+                    <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-2 ml-3">
+                      <p className="text-xs text-zinc-300">
+                        <span className="font-bold text-indigo-400 mr-1">Lunar:</span>
+                        {item.answer}
+                      </p>
+                    </div>
+                    <div className="text-[10px] text-zinc-600 ml-3 flex gap-2">
+                       <span>{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* History Toggle Button */}
+      <div className="absolute top-4 right-5 z-20">
+        <button 
+          onClick={() => setShowHistory(true)}
+          className="bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white p-1.5 rounded-full transition-colors backdrop-blur-sm border border-zinc-700/50"
+          title="Command History"
+        >
+          <History size={14} />
+        </button>
       </div>
     </div>
   );

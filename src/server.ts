@@ -61,7 +61,14 @@ app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), asyn
 const server = createServer(app);
 const wss = new WebSocketServer({ noServer: true });
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const genAI = new GoogleGenAI({ 
+  apiKey: process.env.GEMINI_API_KEY || "",
+  httpOptions: {
+    headers: {
+      'User-Agent': 'aistudio-build',
+    }
+  }
+});
 const getAi = () => genAI;
 
 app.set('trust proxy', 1);
@@ -95,7 +102,7 @@ app.get('/api/health', (req, res) => {
   const diagnostics = {
     status: 'ok',
     time: new Date().toISOString(),
-    dbConfigured: !!(process.env.SQL_HOST),
+    dbConfigured: !!(process.env.SQL_HOST || process.env.DATABASE_URL),
     geminiConfigured: !!(process.env.GEMINI_API_KEY)
   };
   res.json(diagnostics);
@@ -185,7 +192,7 @@ app.post('/api/compliance/consent', requireAuth, tenantGuard, async (req: any, r
     const id = `consent_${uuidv4().substring(0, 8)}`;
     await db.insert(schema.formsLegalConsents).values({
       id,
-      userId: req.user.id,
+      userId: req.user.uid,
       consentType,
       version,
       ipAddress: req.ip || '',
@@ -193,8 +200,8 @@ app.post('/api/compliance/consent', requireAuth, tenantGuard, async (req: any, r
     });
 
     await logAction({
-      tenantId: req.user.tenantId || req.user.tenant_id,
-      userId: req.user.id,
+      tenantId: req.tenantId,
+      userId: req.user.uid,
       action: 'CONSENT_GIVEN',
       metadata: { consentType, version },
       req
@@ -274,7 +281,7 @@ app.post('/api/factory/generate-ecosystem', requireAuth, tenantGuard, async (req
     
     await logAction({
       tenantId,
-      userId: req.user.id,
+      userId: req.user.uid,
       action: 'ECOSYSTEM_GENERATED',
       resourceType: 'magazine',
       resourceId: magazineId,
@@ -719,9 +726,10 @@ app.get('/api/magazines/:id/search', requireAuth, tenantGuard, async (req: any, 
     }
     const query = q.toLowerCase().trim();
     const id = req.params.id;
+    const tenantId = req.tenantId;
 
     // Retrieve magazine using resolveMagazine helper to support fallback presets
-    const magazine = await resolveMagazine(id, getTenantId(req));
+    const magazine = await resolveMagazine(id, tenantId);
     if (!magazine) {
       return res.status(404).json({ error: 'Magazine not found' });
     }
@@ -851,7 +859,7 @@ app.get('/api/search/discover', requireAuth, tenantGuard, async (req: any, res) 
 
     await logAction({
       tenantId,
-      userId: req.user?.id,
+      userId: req.user?.uid,
       action: 'SEARCH_QUERY',
       metadata: { query, resultsCount: globalResults.length },
       req
@@ -868,6 +876,7 @@ app.get('/api/search/discover', requireAuth, tenantGuard, async (req: any, res) 
 
 // POST conversation scope chat assistant for a magazine
 import { AgriIntelligenceService } from './services/agri-intelligence';
+import { VideoSummarizerService } from './services/video-summarizer';
 
 app.post('/api/magazines/:id/chat', requireAuth, tenantGuard, async (req: any, res) => {
   const { id } = req.params;
@@ -929,7 +938,7 @@ app.post('/api/magazines/:id/chat', requireAuth, tenantGuard, async (req: any, r
 
     await logAction({
       tenantId,
-      userId: req.user?.id,
+      userId: req.user?.uid,
       action: 'AI_CHAT',
       resourceType: 'magazine',
       resourceId: id,
@@ -1044,10 +1053,9 @@ app.put('/api/magazines/:id', requireAuth, tenantGuard, async (req: any, res) =>
 });
 
 // --- Ingestion Pipeline ---
-app.post('/api/ingest', async (req: any, res) => {
-  if (!req.user) return res.status(401).json({ error: 'Authentication required for ingestion' });
+app.post('/api/ingest', requireAuth, tenantGuard, async (req: any, res) => {
   const { pdfData, fileName, magazineId } = req.body;
-  const tenantId = req.user.tenant_id;
+  const tenantId = req.tenantId;
 
   if (!pdfData || !magazineId) {
     return res.status(400).json({ error: "Missing pdfData or magazineId" });
@@ -1167,7 +1175,7 @@ app.post('/api/magazines/:id/chat-rag', requireAuth, tenantGuard, async (req: an
 // Get all bookshelves
 app.get('/api/bookshelves', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    const tenantId = req.query.tenantId as string || 'tenant_default';
+    const tenantId = req.tenantId;
     const bookshelves = await db.select().from(schema.bookshelves).where(eq(schema.bookshelves.tenantId, tenantId));
     const bookshelvesWithMags = await Promise.all(bookshelves.map(async (bs: any) => ({
       ...bs,
@@ -1543,9 +1551,10 @@ Return EXACTLY a JSON dictionary structured as follows:
   }
 }
 
-app.get('/api/docupipe/extractions', async (req, res) => {
+app.get('/api/docupipe/extractions', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    const rows = await db.select().from(schema.docupipeExtractions).orderBy(desc(schema.docupipeExtractions.createdAt));
+    const tenantId = req.tenantId;
+    const rows = await db.select().from(schema.docupipeExtractions).where(eq(schema.docupipeExtractions.tenantId, tenantId)).orderBy(desc(schema.docupipeExtractions.createdAt));
     res.json(rows.map((row: any) => ({
       ...row,
       resultJson: row.resultJson ? JSON.parse(row.resultJson) : null
@@ -1556,9 +1565,10 @@ app.get('/api/docupipe/extractions', async (req, res) => {
   }
 });
 
-app.get('/api/docupipe/extractions/:id', async (req, res) => {
+app.get('/api/docupipe/extractions/:id', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    const [row] = await db.select().from(schema.docupipeExtractions).where(eq(schema.docupipeExtractions.id, req.params.id));
+    const tenantId = req.tenantId;
+    const [row] = await db.select().from(schema.docupipeExtractions).where(and(eq(schema.docupipeExtractions.id, req.params.id), eq(schema.docupipeExtractions.tenantId, tenantId)));
     if (!row) {
       return res.status(404).json({ error: 'Extraction check failed: record not found' });
     }
@@ -1572,9 +1582,10 @@ app.get('/api/docupipe/extractions/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/docupipe/extractions/:id', async (req, res) => {
+app.delete('/api/docupipe/extractions/:id', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    await db.delete(schema.docupipeExtractions).where(eq(schema.docupipeExtractions.id, req.params.id));
+    const tenantId = req.tenantId;
+    await db.delete(schema.docupipeExtractions).where(and(eq(schema.docupipeExtractions.id, req.params.id), eq(schema.docupipeExtractions.tenantId, tenantId)));
     res.json({ success: true });
   } catch (err: any) {
     console.error(err);
@@ -1582,7 +1593,8 @@ app.delete('/api/docupipe/extractions/:id', async (req, res) => {
   }
 });
 
-app.post('/api/docupipe/standardize', async (req, res) => {
+app.post('/api/docupipe/standardize', requireAuth, tenantGuard, async (req: any, res) => {
+  const tenantId = req.tenantId;
   const docupipeKey = await getDocupipeApiKey() || '';
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!docupipeKey && !geminiKey) {
@@ -1729,7 +1741,7 @@ app.post('/api/heyzine/config', async (req, res) => {
   }
 });
 
-app.get('/api/heyzine/publications', async (req, res) => {
+app.get('/api/heyzine/publications', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const apiKey = await getHeyzineApiKey();
     if (!apiKey) return res.status(401).json({ error: 'Heyzine API key is not configured.' });
@@ -1765,7 +1777,7 @@ app.get('/api/heyzine/publications', async (req, res) => {
   }
 });
 
-app.post('/api/heyzine/publications', async (req, res) => {
+app.post('/api/heyzine/publications', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const { name, url, description } = req.body;
     
@@ -1802,7 +1814,7 @@ app.post('/api/heyzine/tracked-links', async (req, res) => {
    res.json({ success: true });
 });
 
-app.post('/api/heyzine/delete', async (req, res) => {
+app.post('/api/heyzine/delete', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const { id } = req.body;
     const apiKey = await getHeyzineApiKey();
@@ -1825,10 +1837,11 @@ app.post('/api/heyzine/delete', async (req, res) => {
   }
 });
 
-app.post('/api/magazines', async (req: any, res) => {
+app.post('/api/magazines', requireAuth, tenantGuard, async (req: any, res) => {
   try {
     const { publisherId, title, slug, coverUrl, pdfUrl, pdfData, status, aiEnabled, aiPersonality, aiContext, ttsEnabled, chatEnabled, pageCount } = req.body;
     let finalPdfUrl = pdfUrl || '';
+    const tenantId = req.tenantId;
 
     // Automatically convert public Google Slides URL to direct PDF export
     if (finalPdfUrl.toLowerCase().includes('docs.google.com/presentation/d/')) {
@@ -1848,7 +1861,6 @@ app.post('/api/magazines', async (req: any, res) => {
     }
 
     const id = `mag_${Date.now()}`;
-    const tenantId = req.user?.tenantId || req.user?.tenant_id || 'tenant_default';
 
     // Ensure uniqueness of slug in the database
     const baseSlug = (slug || title || 'magazine').toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -2201,27 +2213,27 @@ server.on('upgrade', (request, socket, head) => {
 // --- ConvoMag Production API Transitions ---
 
 // Secure Conversational Retrieval Route pointing to unified resilient RAG engine
-app.post('/api/rag/chat', async (req, res) => {
-  const { documentId, query, tenantId } = req.body;
-  const tId = tenantId || 'tenant_default';
+app.post('/api/rag/chat', requireAuth, tenantGuard, async (req: any, res) => {
+  const { documentId, query } = req.body;
+  const tenantId = req.tenantId;
 
   if (!documentId || !query) {
     return res.status(400).json({ error: 'Missing documentId or query' });
   }
 
   try {
-    const response = await performRagRetrieval(tId, documentId, query);
+    const response = await performRagRetrieval(tenantId, documentId, query);
     return res.json(response);
   } catch (err: any) {
-    console.error('RAG pipeline error', { documentId, tenantId: tId, error: err });
+    console.error('RAG pipeline error', { documentId, tenantId, error: err });
     return res.status(500).json({ error: 'Failed to retrieve grounded answer.' });
   }
 });
 
 // Get AI Studio Ingested Documents from PG
-app.get('/api/production-docs', async (req, res) => {
+app.get('/api/production-docs', requireAuth, tenantGuard, async (req: any, res) => {
   try {
-    const tenantId = req.query.tenantId as string || 'tenant_default';
+    const tenantId = req.tenantId;
     const docs = await withTenant(tenantId, async (client) => {
       const result = await client.query('SELECT * FROM documents WHERE tenant_id = $1 ORDER BY created_at DESC', [tenantId]);
       return result.rows;
@@ -2234,6 +2246,67 @@ app.get('/api/production-docs', async (req, res) => {
 
 // Stripe Webhook is now defined at the top of the file to ensure correct middleware ordering.
 
+
+// --- Video Summarization Pipeline ---
+app.post('/api/video-summarize', requireAuth, tenantGuard, async (req: any, res) => {
+  try {
+    const { title, youtubeUrl, transcript } = req.body;
+    const tenantId = req.tenantId;
+
+    if (!transcript) {
+      return res.status(400).json({ error: 'Transcript is required' });
+    }
+
+    const result = await VideoSummarizerService.summarizeVideo(
+      tenantId,
+      title || 'Untitled Video',
+      youtubeUrl || '',
+      transcript
+    );
+
+    res.json(result);
+  } catch (err: any) {
+    console.error('Video summary error:', err);
+    res.status(500).json({ error: 'Failed to generate video summary' });
+  }
+});
+
+app.get('/api/video-summaries', requireAuth, tenantGuard, async (req: any, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const summaries = await db.select().from(schema.videoSummaries)
+      .where(eq(schema.videoSummaries.tenantId, tenantId))
+      .orderBy(desc(schema.videoSummaries.createdAt));
+    
+    res.json(summaries.map((s: any) => ({
+      ...s,
+      highlights: s.highlights ? JSON.parse(s.highlights) : []
+    })));
+  } catch (err: any) {
+    console.error('Fetch summaries error:', err);
+    res.status(500).json({ error: 'Failed to fetch video summaries' });
+  }
+});
+
+app.post('/api/video-summaries/export', requireAuth, tenantGuard, async (req: any, res) => {
+  try {
+    const { summaryId } = req.body;
+    const tenantId = req.tenantId;
+    // Mock export logic to "Creator Studio"
+    await logAction({
+      tenantId,
+      userId: req.user.uid,
+      action: 'VIDEO_SUMMARY_EXPORTED',
+      resourceType: 'video_summary',
+      resourceId: summaryId,
+      req
+    });
+    res.json({ success: true, message: 'Exported to Creator Studio' });
+  } catch (err: any) {
+    console.error('Export error:', err);
+    res.status(500).json({ error: 'Export failed' });
+  }
+});
 
 async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';
@@ -2280,8 +2353,8 @@ async function startServer() {
 if (!process.env.GEMINI_API_KEY) {
   console.error("CRITICAL: GEMINI_API_KEY is not set.");
 }
-if (!process.env.SQL_HOST) {
-  console.warn("WARNING: SQL_HOST is not set.");
+if (!process.env.SQL_HOST && !process.env.DATABASE_URL) {
+  console.warn("WARNING: Neither SQL_HOST nor DATABASE_URL is set.");
 }
 
 startServer();

@@ -8,17 +8,25 @@ let dbInstance: ReturnType<typeof drizzle> | null = null;
 // Function to get or create the DB instance (lazy initialization)
 export const getDb = () => {
   if (!dbInstance) {
-    if (!process.env.SQL_HOST) {
-      console.warn('SQL_HOST missing, skipping DB initialization');
+    if (!process.env.DATABASE_URL && !process.env.SQL_HOST) {
+      console.warn('DATABASE_URL or SQL_HOST missing, skipping DB initialization');
       throw new Error('Database environment variables are missing');
     }
-    pool = new Pool({
-      host: process.env.SQL_HOST,
-      user: process.env.SQL_USER,
-      password: process.env.SQL_PASSWORD,
-      database: process.env.SQL_DB_NAME,
+    
+    const dbConfig: any = {
       connectionTimeoutMillis: 15000,
-    });
+    };
+
+    if (process.env.DATABASE_URL) {
+      dbConfig.connectionString = process.env.DATABASE_URL;
+    } else {
+      dbConfig.host = process.env.SQL_HOST;
+      dbConfig.user = process.env.SQL_USER;
+      dbConfig.password = process.env.SQL_PASSWORD;
+      dbConfig.database = process.env.SQL_DB_NAME;
+    }
+
+    pool = new Pool(dbConfig);
     
     pool.on('error', (err) => {
       console.error('Unexpected error on idle SQL pool client:', err);
@@ -40,5 +48,10 @@ export const db = new Proxy({} as any, {
     return Reflect.get(getDb(), prop, receiver);
   },
 });
+
+export const getPool = () => {
+  getDb();
+  return pool!;
+};
 
 export { pool };

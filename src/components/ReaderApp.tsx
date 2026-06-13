@@ -28,6 +28,7 @@ import { Mic,
   Download,
   HelpCircle,
   Settings,
+  Briefcase,
 } from "lucide-react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -39,6 +40,8 @@ import PWAInstallPrompt from "./PWAInstallPrompt";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 import JustGeneratedModal from "./JustGeneratedModal";
 import CacheManagerModal from "./CacheManagerModal";
+import VideoCenter from "./VideoCenter";
+import InvestorPitch from "./InvestorPitch";
 import { voicePresets } from "@/lib/voices";
 
 function pcmToBase64(pcmData: Float32Array): string {
@@ -76,6 +79,7 @@ export default function ReaderApp() {
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false);
   const [isCacheManagerOpen, setIsCacheManagerOpen] = useState(false);
   const [isJustGeneratedOpen, setIsJustGeneratedOpen] = useState(() => searchParams.get("justGenerated") === "true");
+  const [isPitchOpen, setIsPitchOpen] = useState(false);
   const [selectedVoiceId, setSelectedVoiceId] = useState("en-us-female-1");
 
   // Slides Navigator Grid View & Full-Text Search states
@@ -881,6 +885,13 @@ export default function ReaderApp() {
             <Download size={18} className="text-emerald-500 hover:text-emerald-600 sm:w-4 sm:h-4" />
           </button>
           <button
+            onClick={() => setIsPitchOpen(true)}
+            className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-200 transition-all cursor-pointer"
+            title="Premium Investor Briefing"
+          >
+            <Briefcase size={18} className="text-amber-500 hover:text-amber-400 sm:w-4 sm:h-4 transition-transform hover:-rotate-12" />
+          </button>
+          <button
             onClick={() => setIsCacheManagerOpen(true)}
             className="h-12 w-12 sm:h-10 sm:w-10 hover:bg-black/[0.04] rounded-full flex shrink-0 items-center justify-center text-zinc-805 transition-all cursor-pointer"
             title="Manage Storage & Cache"
@@ -1634,6 +1645,13 @@ export default function ReaderApp() {
           setActivePub((prev: any) => ({ ...prev, ...updatedData }));
         }}
       />
+
+      <VideoCenter />
+      <AnimatePresence>
+        {isPitchOpen && (
+          <InvestorPitch onClose={() => setIsPitchOpen(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

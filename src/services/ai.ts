@@ -1,16 +1,23 @@
 import { GoogleGenAI } from "@google/genai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { db } from "../db/index.ts";
+import { getPool, db } from "../db/index.ts";
 import * as schema from "../db/schema.ts";
 import { eq, and } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
-import { pool } from "../lib/convo-mag/db.ts";
+import { withTenant } from "../lib/convo-mag/db.ts";
 import { CohereClientV2 } from "cohere-ai";
 import OpenAI from "openai";
 import { Citation, RetrievalResult } from "../shared/ai-types";
 import { AgriIntelligenceService } from './agri-intelligence.ts';
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const genAI = new GoogleGenAI({ 
+  apiKey: process.env.GEMINI_API_KEY || "",
+  httpOptions: {
+    headers: {
+      'User-Agent': 'aistudio-build',
+    }
+  }
+});
 
 // Lazy initialized optional premium clients
 let cohereInstance: CohereClientV2 | null = null;
@@ -93,7 +100,7 @@ export async function performRagRetrieval(
   }> = [];
 
   try {
-    const pgClient = await pool.connect();
+    const pgClient = await getPool().connect();
     try {
       // Generate 1536 dimension query embedding
       const queryVector = await generateEmbedding(query, 1536);
@@ -260,7 +267,7 @@ export async function ingestDocument(
 
       // Save using Drizzle/Cloud SQL
       try {
-        const pgClient = await pool.connect();
+        const pgClient = await getPool().connect();
         try {
           const pgEmbedding = await generateEmbedding(content, 1536);
           const vectorSqlString = `[${pgEmbedding.join(',')}]`;
